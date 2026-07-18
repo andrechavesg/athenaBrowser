@@ -536,13 +536,32 @@ export function createCharCreate(config) {
 			root.querySelector('.return').textContent = DB.getMessage(3352 - 1);
 			root.querySelector('.make').textContent = DB.getMessage(3346 - 1);
 		} else {
-			root.querySelector('.race_select .human .title').textContent = DB.getMessage(3017 - 1);
-			root.querySelector('.race_select .human .desc').textContent = DB.getMessage(3021 - 1);
-			root.querySelector('.race_select .human .jobs').textContent = DB.getMessage(3018 - 1);
-
-			root.querySelector('.race_select .doram .title').textContent = DB.getMessage(3019 - 1);
-			root.querySelector('.race_select .doram .desc').textContent = DB.getMessage(3022 - 1);
-			root.querySelector('.race_select .doram .jobs').textContent = DB.getMessage(3020 - 1);
+						const resolveCharCreateMessage = (msgId, fallbackText) => {
+				const value = DB.getMessage(msgId - 1, fallbackText);
+				if (typeof value !== 'string') {
+					return fallbackText;
+				}
+				const normalized = value.trim();
+				if (!normalized || /^NO MSG\s+\d+$/i.test(normalized)) {
+					return fallbackText;
+				}
+				return value;
+			};
+			root.querySelector('.race_select .human .title').textContent = resolveCharCreateMessage(3017, 'Novice');
+			root.querySelector('.race_select .human .desc').textContent = resolveCharCreateMessage(
+				3021,
+				'Balanced Midgard adventurer. Suitable for all new players.'
+			);
+			root.querySelector('.race_select .human .jobs').textContent = resolveCharCreateMessage(
+				3018,
+				'Swordsman / Mage / Archer / Acolyte / Merchant / Thief'
+			);
+			root.querySelector('.race_select .doram .title').textContent = resolveCharCreateMessage(3019, 'Doram');
+			root.querySelector('.race_select .doram .desc').textContent = resolveCharCreateMessage(
+				3022,
+				'Lasagna native focused on spirit-based combat.'
+			);
+			root.querySelector('.race_select .doram .jobs').textContent = resolveCharCreateMessage(3020, 'Summoner');
 		}
 	}
 
@@ -581,7 +600,7 @@ export function createCharCreate(config) {
 		}
 
 		// Rendering
-		SpriteRenderer.bind2DContext(_doram.ctx, 32, 115);
+		SpriteRenderer.bind2DContext(_doram.ctx, 32, 100);
 		_doram.ctx.clearRect(0, 0, _doram.ctx.canvas.width, _doram.ctx.canvas.height);
 		_doram.entity.renderEntity();
 

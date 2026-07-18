@@ -970,7 +970,12 @@ export function createCharSelect(config) {
 		const minutes = datetime.getMinutes();
 		const seconds = datetime.getSeconds();
 
-		const formattedDatetime = DB.getMessage(2097)
+		const datetimeTemplate = DB.getMessage(2097, '%d/%d %d:%d:%d');
+		const safeTemplate = /^NO MSG\s+\d+$/i.test(String(datetimeTemplate).trim())
+			? '%d/%d %d:%d:%d'
+			: datetimeTemplate;
+
+		const formattedDatetime = safeTemplate
 			.replace('%d', `${month}`)
 			.replace('%d', `${day}`)
 			.replace('%d', `${hours}`)
@@ -1079,6 +1084,8 @@ export function createCharSelect(config) {
 			charinfo.querySelectorAll('div').forEach(div => {
 				div.textContent = '';
 			});
+			// ragnarok-charselect-v2-empty-slot
+			charinfo.querySelector('.name').textContent = `Empty Slot ${_index + 1}`;
 			root.querySelector('.make').style.display = 'block';
 			root.querySelector('.delete').style.display = 'none';
 			if (deleteReservation) {
@@ -1335,7 +1342,8 @@ export function createCharSelect(config) {
 
 		for (let i = start; i < loopMax; ++i) {
 			if (charCanvases[i]) {
-				charCanvases[i].querySelector('.name').innerHTML = _slots[i] ? _slots[i].name : '';
+				// ragnarok-charselect-v4-empty-slot
+			charCanvases[i].querySelector('.name').innerHTML = _slots[i] ? _slots[i].name : `Empty Slot ${i + 1}`;
 			}
 			if (!_slots[i]) {
 				if (jobIcons[i]) {
