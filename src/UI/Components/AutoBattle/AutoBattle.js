@@ -26,16 +26,64 @@ const TICK_MS  = 600;
 const MAX_RANGE = 14;  // cells
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-function _sendAttack(targetGID) {
-    let pkt;
+function _sendAttack(target) {
+    const player = Session.Entity;
+    if (!player || !player.position) return;
+
+    // Build the attack packet
+    let atkPkt;
     if (PACKETVER.value >= 20180307) {
-        pkt = new PACKET.CZ.REQUEST_ACT2();
+        atkPkt = new PACKET.CZ.REQUEST_ACT2();
     } else {
-        pkt = new PACKET.CZ.REQUEST_ACT();
+        atkPkt = new PACKET.CZ.REQUEST_ACT();
     }
-    pkt.action    = 7;
-    pkt.targetGID = targetGID;
-    Network.sendPacket(pkt);
+    atkPkt.action    = 7;
+    atkPkt.targetGID = target.GID;
+
+    // Send CHANGE_DIRECTION so the server sees the player facing the target
+    player.lookTo(target.position[0], target.position[1]);
+    let dirPkt;
+    if (PACKETVER.value >= 20180307) {
+        dirPkt = new PACKET.CZ.CHANGE_DIRECTION2();
+    } else {
+        dirPkt = new PACKET.CZ.CHANGE_DIRECTION();
+    }
+    dirPkt.headDir = player.headDir;
+    dirPkt.dir     = player.direction;
+    Network.sendPacket(dirPkt);
+
+    // PathFinding range check: attack_range + 1 matches EntityControl behaviour
+    const range = (player.attack_range || 1) + 1;
+    const out   = [];
+    const count = PathFinding.search(
+        player.position[0] | 0,
+        player.position[1] | 0,
+        target.position[0] | 0,
+        target.position[1] | 0,
+        range,
+        out
+    );
+
+    if (!count) return; // no path at all
+
+    if (count < 2) {
+        // Already in attack range — send immediately
+        Network.sendPacket(atkPkt);
+        return;
+    }
+
+    // Out of range: walk toward target and fire when movement ends
+    Session.moveAction = atkPkt;
+
+    let movePkt;
+    if (PACKETVER.value >= 20180307) {
+        movePkt = new PACKET.CZ.REQUEST_MOVE2();
+    } else {
+        movePkt = new PACKET.CZ.REQUEST_MOVE();
+    }
+    movePkt.dest[0] = out[(count - 1) * 2 + 0];
+    movePkt.dest[1] = out[(count - 1) * 2 + 1];
+    Network.sendPacket(movePkt);
 }
 
 function _getNearbyMobs() {
@@ -93,8 +141,7 @@ function _tick() {
     if (!_active) return;
     const target = _findTarget();
     if (!target) return;
-    // Send the attack packet directly — bypasses PathFinding/focus side-effects
-    _sendAttack(target.GID);
+    _sendAttack(target);
 }
 
 // ── map mob list helpers ──────────────────────────────────────────────────────
@@ -119,13 +166,19 @@ function _getMobListForMap() {
     for (let i = 0; i < naviMobs.length; i++) {
         const entry = naviMobs[i];
         // entry: ["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info]
-        if (!Array.isArray(entry) || entry.length < 4) continue;
+        if (!Array.isArray(entry) || entry.length < 5) continue;
         const entryMap = String(entry[0]).replace(/\.gat$/i, '');
         if (mapName && entryMap !== mapName) continue;
         const classId = Number(entry[3]);
         if (!classId) continue;
         if (!byClass[classId]) {
-            byClass[classId] = { classId, name: DB.getMonsterName(classId), mapCount: 0, visibleCount: 0 };
+            // Prefer the name stored in NaviMobTable (entry[4]); fall back to MonsterNameTable
+            const naviName  = String(entry[4] || '').trim();
+            const tableName = DB.getMonsterName(classId);
+            const name = (naviName && naviName !== 'Unknown') ? naviName
+                       : (tableName !== 'Unknown')            ? tableName
+                       : naviName || ('Class ' + classId);
+            byClass[classId] = { classId, name, mapCount: 0, visibleCount: 0 };
         }
         byClass[classId].mapCount++;
     }
@@ -134,7 +187,13 @@ function _getMobListForMap() {
     const visible = _getNearbyMobs();
     visible.forEach(function (m) {
         if (!byClass[m.job]) {
-            byClass[m.job] = { classId: m.job, name: DB.getMonsterName(m.job), mapCount: 0, visibleCount: 0 };
+            // For entities not in NaviMobTable, try MonsterNameTable then entity display name
+            const tableName = DB.getMonsterName(m.job);
+            const dispName  = (m.display && m.display.name) ? String(m.display.name).trim() : '';
+            const name = (tableName !== 'Unknown') ? tableName
+                       : (dispName)                ? dispName
+                       : ('Class ' + m.job);
+            byClass[m.job] = { classId: m.job, name, mapCount: 0, visibleCount: 0 };
         }
         byClass[m.job].visibleCount++;
     });
