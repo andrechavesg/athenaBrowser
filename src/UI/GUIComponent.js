@@ -947,6 +947,55 @@ class GUIComponent {
 		const msgId = node.dataset.text;
 		const preload = node.dataset.preload;
 
+		// Korean BMP intercept — replace with a native styled button
+		const _KOREAN_BMP_LABELS = {
+			'btn_ok':     'OK',
+			'btn_ok_dis': 'OK',
+			'btn_cancel': 'Cancel',
+			'btn_del':    'Delete',
+			'btn_close':  'Close',
+			'btn_make':   'Create',
+			'btn_next':   'Next',
+			'btn_sell':   'Sell',
+			'btn_buy':    'Buy',
+			'btn_use':    'Use',
+			'btn_back':   'Back',
+		};
+		if (background) {
+			const stem = background.replace(/.*[\\/]/, '').replace(/\.bmp$/i, '').toLowerCase();
+			const label = _KOREAN_BMP_LABELS[stem];
+			if (label !== undefined) {
+				if (!node.textContent.trim()) node.textContent = label;
+				Object.assign(node.style, {
+					background: 'linear-gradient(to bottom, #d0dff0, #a8c0dc)',
+					border: '1px solid #2a5080',
+					borderRadius: '3px',
+					color: '#1a3258',
+					fontSize: '9px',
+					fontWeight: '700',
+					cursor: 'pointer',
+					letterSpacing: '0.2px',
+					display: 'inline-flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					backgroundImage: 'none',
+				});
+				node.addEventListener('mouseover', () => {
+					node.style.background = 'linear-gradient(to bottom, #e0eeff, #c0d8f0)';
+				});
+				node.addEventListener('mouseout', () => {
+					node.style.background = 'linear-gradient(to bottom, #d0dff0, #a8c0dc)';
+				});
+				node.addEventListener('mousedown', () => {
+					node.style.background = 'linear-gradient(to bottom, #a8c0dc, #d0dff0)';
+				});
+				node.addEventListener('mouseup', () => {
+					node.style.background = 'linear-gradient(to bottom, #d0dff0, #a8c0dc)';
+				});
+				return;
+			}
+		}
+
 		let bgUri = null;
 		let hoverUri = null;
 		let downUri = null;

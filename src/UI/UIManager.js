@@ -26,19 +26,27 @@ function _popupPosition() {
 	};
 }
 
+/** Map of internal button names → English display labels */
+const _BTN_LABELS = {
+	ok:     'OK',
+	cancel: 'Cancel',
+	del:    'Delete',
+	close:  'Close',
+	yes:    'Yes',
+	no:     'No',
+};
+
 /**
- * Create a button with data-attributes for parseHTML to process
+ * Create a native styled button with English text.
+ * Avoids loading Korean BMP images (btn_ok.bmp, btn_cancel.bmp, etc.).
  * @param {string} name - button name (ex: 'ok', 'cancel')
  * @param {function} onClick - click callback (fires once)
- * @param {function} parseHTML - reference to GUIComponent.processDataAttrs
  * @returns {HTMLButtonElement}
  */
 function _createButton(name, onClick) {
 	const btn = document.createElement('button');
-	btn.className = 'btn';
-	btn.dataset.background = `btn_${name}.bmp`;
-	btn.dataset.hover = `btn_${name}_a.bmp`;
-	btn.dataset.down = `btn_${name}_b.bmp`;
+	btn.className = 'btn btn-eng';
+	btn.textContent = _BTN_LABELS[name] || name.charAt(0).toUpperCase() + name.slice(1);
 
 	let clicked = false;
 	btn.addEventListener('click', () => {
@@ -46,8 +54,6 @@ function _createButton(name, onClick) {
 		clicked = true;
 		onClick();
 	});
-
-	GUIComponent.processDataAttrs(btn);
 
 	return btn;
 }

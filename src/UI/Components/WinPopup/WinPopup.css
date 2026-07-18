@@ -10,6 +10,12 @@
 	width: 280px;
 	height: 120px;
 	z-index: 999;
+	background: linear-gradient(to bottom, #d8e8f8, #b8cce4);
+	border: 2px outset #8aaac8;
+	border-radius: 3px;
+	box-sizing: border-box;
+	/* title bar strip */
+	background-image: linear-gradient(to bottom, #4870a8 0px, #3a5e8e 18px, #d8e8f8 18px, #b8cce4 100%);
 }
 
 #win_popup .container {
@@ -22,6 +28,8 @@
 
 #win_popup .text {
 	padding: 5px 10px 0px 10px;
+	color: #1a2e48;
+	font-size: 11px;
 }
 
 #win_popup .buttonscontainer {
@@ -35,6 +43,8 @@
 	position: absolute;
 	bottom: 2px;
 	right: 3px;
+	display: flex;
+	gap: 4px;
 }
 
 #win_popup .btn {
@@ -45,4 +55,30 @@
 	margin-left: 3px;
 	background-repeat: no-repeat;
 	background-color: transparent;
+}
+
+/* Native English popup buttons — no BMP images */
+#win_popup .btn.btn-eng {
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	border: 1px solid #2a5080;
+	border-radius: 3px;
+	color: #1a3258;
+	font-size: 9px;
+	font-weight: 700;
+	cursor: pointer;
+	letter-spacing: 0.2px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0;
+	width: 48px;
+}
+
+#win_popup .btn.btn-eng:hover {
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
+}
+
+#win_popup .btn.btn-eng:active {
+	background: linear-gradient(to bottom, #a8c0dc, #d0dff0);
 }
