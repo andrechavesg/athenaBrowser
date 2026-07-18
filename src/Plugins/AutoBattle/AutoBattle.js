@@ -19,6 +19,7 @@ import PACKET        from 'Network/PacketStructure.js';
 import PACKETVER     from 'Network/PacketVerManager.js';
 import DB            from 'DB/DBManager.js';
 import PathFinding   from 'Utils/PathFinding.js';
+import Altitude      from 'Renderer/Map/Altitude.js';
 
 // ── module-level state ────────────────────────────────────────────────────────
 let _active        = false;
@@ -26,8 +27,13 @@ let _targetClasses = new Set(); // empty = attack any mob
 let _intervalId    = null;
 let _root          = null; // the injected container div
 
-const TICK_MS   = 600;
-const MAX_RANGE = 14;  // cells
+const TICK_MS        = 600;
+const MAX_RANGE      = 14;  // cells
+const WANDER_STEP    = 3;   // max cells per wander move
+const WANDER_COOL_MS = 1500; // minimum ms between wander moves
+
+let _lastWanderPos  = null; // [x, y] of last wander destination
+let _wanderCooldown = 0;    // Date.now() timestamp after which next wander is allowed
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -166,6 +172,75 @@ function _findTarget() {
     });
 }
 
+/**
+ * Returns true when cell (x, y) is walkable according to the loaded GAT data.
+ * Uses Altitude.getCellType() & Altitude.TYPE.WALKABLE — the same check used
+ * by MapRenderer and EntityManager throughout roBrowserLegacy.
+ */
+function _isCellWalkable(x, y) {
+    try {
+        return !!(Altitude.getCellType(x, y) & Altitude.TYPE.WALKABLE);
+    } catch (_) {
+        return false;
+    }
+}
+
+/**
+ * Move the player one random step when there is no target in range.
+ * Shuffles the 8 cardinal/diagonal directions and picks the first walkable
+ * cell that is not the cell we just came from.  Throttled to once per
+ * WANDER_COOL_MS to avoid flooding the server with move packets.
+ */
+function _wander() {
+    const now = Date.now();
+    if (now < _wanderCooldown) return;
+
+    const player = Session.Entity;
+    if (!player || !player.position) return;
+
+    const px = player.position[0] | 0;
+    const py = player.position[1] | 0;
+
+    // Eight possible step offsets scaled to WANDER_STEP
+    const s = WANDER_STEP;
+    const dirs = [
+        [ 0,  s], [ 0, -s], [ s,  0], [-s,  0],
+        [ s,  s], [-s,  s], [ s, -s], [-s, -s]
+    ];
+
+    // Fisher-Yates shuffle for variety
+    for (let i = dirs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = dirs[i]; dirs[i] = dirs[j]; dirs[j] = tmp;
+    }
+
+    for (const [dx, dy] of dirs) {
+        const nx = px + dx;
+        const ny = py + dy;
+
+        if (!_isCellWalkable(nx, ny)) continue;
+
+        // Avoid immediately reversing to the previous wander destination
+        if (_lastWanderPos && _lastWanderPos[0] === nx && _lastWanderPos[1] === ny) continue;
+
+        let movePkt;
+        if (PACKETVER.value >= 20180307) {
+            movePkt = new PACKET.CZ.REQUEST_MOVE2();
+        } else {
+            movePkt = new PACKET.CZ.REQUEST_MOVE();
+        }
+        movePkt.dest[0] = nx;
+        movePkt.dest[1] = ny;
+        Network.sendPacket(movePkt);
+
+        _lastWanderPos  = [nx, ny];
+        _wanderCooldown = now + WANDER_COOL_MS;
+
+        console.log('[AutoBattle] wander → (' + nx + ',' + ny + ')');
+        break;
+    }
+}
+
 function _tick() {
     if (!_active) return;
     const player = Session.Entity;
@@ -174,7 +249,12 @@ function _tick() {
         return;
     }
     const target = _findTarget();
-    if (!target) return;
+    if (!target) {
+        _wander(); // No mob in range — roam until one appears
+        return;
+    }
+    // Reset wander state so we don't skip the first walkable cell next time
+    _lastWanderPos = null;
     console.log('[AutoBattle] tick → attack GID', target.GID, 'job', target.job,
         'pos', target.position[0], target.position[1]);
     _sendAttack(target);
