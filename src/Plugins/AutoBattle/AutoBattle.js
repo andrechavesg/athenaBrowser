@@ -6,7 +6,7 @@
  *
  * Usage (plugin convention):
  *   import AutoBattle from 'Plugins/AutoBattle/AutoBattle.js';
- *   AutoBattle();
+ *   AutoBattle();   // called on every map load; safe to call multiple times
  *
  * This file is part of the roBrowserLegacy private fork.
  */
@@ -21,10 +21,10 @@ import DB            from 'DB/DBManager.js';
 import PathFinding   from 'Utils/PathFinding.js';
 
 // ── module-level state ────────────────────────────────────────────────────────
-let _active      = false;
-let _targetClass = 0;   // 0 = any mob
-let _intervalId  = null;
-let _root        = null; // the injected container div
+let _active        = false;
+let _targetClasses = new Set(); // empty = attack any mob
+let _intervalId    = null;
+let _root          = null; // the injected container div
 
 const TICK_MS   = 600;
 const MAX_RANGE = 14;  // cells
@@ -148,9 +148,10 @@ function _findTarget() {
     const mobs = _getNearbyMobs();
     if (!mobs.length) return null;
 
+    // If no specific targets selected, attack any mob
     let candidates = mobs;
-    if (_targetClass > 0) {
-        candidates = mobs.filter(m => m.job === _targetClass);
+    if (_targetClasses.size > 0) {
+        candidates = mobs.filter(m => _targetClasses.has(m.job));
         if (!candidates.length) return null;
     }
 
@@ -344,14 +345,6 @@ const CSS = `
 #ab-any-row { margin-bottom: 6px; }
 #ab-no-mobs { color: #5070a0; font-size: 10px; text-align: center; padding: 8px 0; display: none; }
 
-#ab-refresh-btn {
-    width: 100%; padding: 4px 0; border-radius: 4px;
-    border: 1px solid #3a5a8a; background: rgba(20,45,90,0.6);
-    color: #7090c0; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.4px; cursor: pointer; text-transform: uppercase;
-}
-#ab-refresh-btn:hover { background: rgba(40,75,140,0.7); color: #b0c8f0; border-color: #5a8abc; }
-
 .ab-start-any-btn {
     width: 100%; padding: 5px 0; border-radius: 4px;
     border: 1px solid #5a8a3a; background: rgba(20,60,20,0.7);
@@ -362,7 +355,6 @@ const CSS = `
 `;
 
 function _buildDOM() {
-    // Inject stylesheet once
     if (!document.getElementById('ab-style')) {
         const style = document.createElement('style');
         style.id = 'ab-style';
@@ -379,7 +371,7 @@ function _buildDOM() {
                 <span id="ab-close-panel" title="Close">✕</span>
             </div>
             <div id="ab-target-label">Target</div>
-            <div id="ab-current-target">Any monster</div>
+            <div id="ab-current-target">Any Monster</div>
             <div id="ab-mob-list">
                 <div class="ab-mob-row ab-row-selected" id="ab-any-row" data-class="0">
                     <div class="ab-mob-id">—</div>
@@ -389,7 +381,6 @@ function _buildDOM() {
                 </div>
             </div>
             <div id="ab-no-mobs">No monsters nearby</div>
-            <button id="ab-refresh-btn">↻ Refresh List</button>
         </div>
         <div id="ab-toggle">
             <span class="ab-dot"></span>
@@ -402,18 +393,19 @@ function _buildDOM() {
 
 // ── UI event wiring ───────────────────────────────────────────────────────────
 function _wireEvents(root) {
-    const toggle    = root.querySelector('#ab-toggle');
-    const panel     = root.querySelector('#ab-panel');
-    const closeBtn  = root.querySelector('#ab-close-panel');
-    const refreshBtn= root.querySelector('#ab-refresh-btn');
+    const toggle   = root.querySelector('#ab-toggle');
+    const panel    = root.querySelector('#ab-panel');
+    const closeBtn = root.querySelector('#ab-close-panel');
 
     toggle.addEventListener('click', function (e) {
         if (e.target === toggle || e.target.classList.contains('ab-dot') || e.target.id === 'ab-label') {
             if (_active) {
                 _toggleActive(root);
-            } else if (_targetClass > 0) {
+            } else if (_targetClasses.size > 0) {
+                // Targets already selected — start immediately
                 _toggleActive(root);
             } else {
+                // No target — open the mob selection panel
                 panel.classList.add('ab-panel-open');
                 _refreshList(root);
             }
@@ -431,8 +423,6 @@ function _wireEvents(root) {
     closeBtn.addEventListener('click', function () {
         panel.classList.remove('ab-panel-open');
     });
-
-    refreshBtn.addEventListener('click', function () { _refreshList(root); });
 }
 
 function _toggleActive(root) {
@@ -455,18 +445,54 @@ function _toggleActive(root) {
     }
 }
 
-function _setTarget(classId, name, root) {
-    _targetClass = classId;
-    const cur = root.querySelector('#ab-current-target');
-    if (cur) cur.textContent = name;
+/** Toggle a classId in/out of _targetClasses and update the target display. */
+function _toggleTarget(classId, root) {
+    if (classId === 0) {
+        // "Any Monster" — clear all specific selections
+        _targetClasses.clear();
+    } else {
+        if (_targetClasses.has(classId)) {
+            _targetClasses.delete(classId);
+        } else {
+            _targetClasses.add(classId);
+        }
+    }
+    _updateTargetDisplay(root);
     _refreshSelectedRow(root);
 }
 
+function _updateTargetDisplay(root) {
+    const cur = root.querySelector('#ab-current-target');
+    if (!cur) return;
+    if (_targetClasses.size === 0) {
+        cur.textContent = 'Any Monster';
+    } else {
+        const names = Array.from(_targetClasses).map(function (id) {
+            const n = DB.getMonsterName(id);
+            return (n && n !== 'Unknown') ? n : ('Monster #' + id);
+        });
+        cur.textContent = names.join(', ');
+    }
+}
+
 function _refreshSelectedRow(root) {
-    root.querySelectorAll('.ab-mob-row').forEach(function (row) {
+    // "Any Monster" row: selected only when no specific targets chosen
+    const anyRow = root.querySelector('#ab-any-row');
+    if (anyRow) {
+        const anyBtn = anyRow.querySelector('.ab-mob-select');
+        if (_targetClasses.size === 0) {
+            anyRow.classList.add('ab-row-selected');
+            if (anyBtn) anyBtn.textContent = '✓ Select';
+        } else {
+            anyRow.classList.remove('ab-row-selected');
+            if (anyBtn) anyBtn.textContent = 'Select';
+        }
+    }
+
+    root.querySelectorAll('.ab-mob-row:not(#ab-any-row)').forEach(function (row) {
         const cls = parseInt(row.dataset.class || '0', 10);
         const btn = row.querySelector('.ab-mob-select');
-        if (cls === _targetClass) {
+        if (_targetClasses.has(cls)) {
             row.classList.add('ab-row-selected');
             if (btn) btn.textContent = '✓ Select';
         } else {
@@ -479,7 +505,6 @@ function _refreshSelectedRow(root) {
 function _refreshList(root) {
     const list   = root.querySelector('#ab-mob-list');
     const noMobs = root.querySelector('#ab-no-mobs');
-    const panel  = root.querySelector('#ab-panel');
     if (!list) return;
 
     const classes = _getMobListForMap();
@@ -513,30 +538,32 @@ function _refreshList(root) {
 
     list.querySelectorAll('.ab-mob-select').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const cls  = parseInt(btn.dataset.class || '0', 10);
-            const name = cls === 0 ? 'Any Monster' : DB.getMonsterName(cls);
-            _setTarget(cls, name, root);
-            if (cls > 0) {
-                panel.classList.remove('ab-panel-open');
-                if (!_active) _toggleActive(root);
-            }
+            const cls = parseInt(btn.dataset.class || '0', 10);
+            _toggleTarget(cls, root);
         });
     });
 
+    // "Any Monster" row toggle
+    const anyBtn = root.querySelector('#ab-any-row .ab-mob-select');
+    if (anyBtn) {
+        anyBtn.onclick = function () { _toggleTarget(0, root); };
+    }
+
     _refreshSelectedRow(root);
 
+    // "Start (Any Monster)" shortcut button — create once
     if (!root.querySelector('#ab-start-any-btn')) {
         const startAnyBtn = document.createElement('button');
         startAnyBtn.id = 'ab-start-any-btn';
         startAnyBtn.className = 'ab-start-any-btn';
         startAnyBtn.textContent = '▶ Start (Any Monster)';
         startAnyBtn.addEventListener('click', function () {
-            _setTarget(0, 'Any Monster', root);
-            panel.classList.remove('ab-panel-open');
+            _toggleTarget(0, root);
+            root.querySelector('#ab-panel').classList.remove('ab-panel-open');
             if (!_active) _toggleActive(root);
         });
-        const refreshBtn = root.querySelector('#ab-refresh-btn');
-        refreshBtn.parentNode.insertBefore(startAnyBtn, refreshBtn);
+        // Insert after the mob-list div
+        list.parentNode.insertBefore(startAnyBtn, noMobs.nextSibling);
     }
 }
 
@@ -548,8 +575,23 @@ function _esc(str) {
 }
 
 // ── plugin entry point ────────────────────────────────────────────────────────
+
+/**
+ * Refresh the mob list from the outside (e.g. called by MapEngine on map load).
+ * Safe to call even before Init().
+ */
+export function refreshMobList() {
+    if (_root) _refreshList(_root);
+}
+
 export default function Init() {
-    if (_root) return; // already initialised
+    if (_root) {
+        // Already initialised — just refresh the mob list for the new map
+        _refreshList(_root);
+        return;
+    }
     _root = _buildDOM();
     _wireEvents(_root);
+    // Auto-populate mob list on first load
+    _refreshList(_root);
 }

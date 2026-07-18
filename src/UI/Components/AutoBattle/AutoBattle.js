@@ -18,9 +18,9 @@ import DB         from 'DB/DBManager.js';
 import PathFinding from 'Utils/PathFinding.js';
 
 // ── module-level state ────────────────────────────────────────────────────────
-let _active      = false;
-let _targetClass = 0;   // 0 = any mob
-let _intervalId  = null;
+let _active        = false;
+let _targetClasses = new Set(); // empty = attack any mob
+let _intervalId    = null;
 
 const TICK_MS  = 600;
 const MAX_RANGE = 14;  // cells
@@ -142,9 +142,10 @@ function _findTarget() {
     const mobs = _getNearbyMobs();
     if (!mobs.length) return null;
 
+    // If no specific targets selected, attack any mob
     let candidates = mobs;
-    if (_targetClass > 0) {
-        candidates = mobs.filter(m => m.job === _targetClass);
+    if (_targetClasses.size > 0) {
+        candidates = mobs.filter(m => _targetClasses.has(m.job));
         if (!candidates.length) return null;
     }
 
@@ -256,18 +257,17 @@ AutoBattle.init = function init() {
     this._host.style.left     = '';
     this._host.style.zIndex   = '9000';
 
-    const toggle    = root.getElementById('ab-toggle');
-    const panel     = root.getElementById('ab-panel');
-    const closeBtn  = root.getElementById('ab-close-panel');
-    const refreshBtn= root.getElementById('ab-refresh-btn');
+    const toggle   = root.getElementById('ab-toggle');
+    const panel    = root.getElementById('ab-panel');
+    const closeBtn = root.getElementById('ab-close-panel');
 
     toggle.addEventListener('click', function (e) {
         if (e.target === toggle || e.target.classList.contains('ab-dot') || e.target.id === 'ab-label') {
             if (_active) {
                 // Stop
                 _toggleActive(root);
-            } else if (_targetClass > 0) {
-                // Target already selected — start immediately
+            } else if (_targetClasses.size > 0) {
+                // Targets already selected — start immediately
                 _toggleActive(root);
             } else {
                 // No target — open the mob selection panel instead of starting
@@ -288,8 +288,14 @@ AutoBattle.init = function init() {
     closeBtn.addEventListener('click', function () {
         panel.classList.remove('ab-panel-open');
     });
+};
 
-    refreshBtn.addEventListener('click', function () { _refreshList(root); });
+/**
+ * Called externally (e.g. from MapEngine) to refresh the mob list after a map change.
+ */
+AutoBattle.refreshMobList = function refreshMobList() {
+    const root = this.getRoot ? this.getRoot() : null;
+    if (root) _refreshList(root);
 };
 
 function _toggleActive(root) {
@@ -312,18 +318,54 @@ function _toggleActive(root) {
     }
 }
 
-function _setTarget(classId, name, root) {
-    _targetClass = classId;
-    const cur = root.getElementById('ab-current-target');
-    if (cur) cur.textContent = name;
+/** Toggle a classId in/out of _targetClasses and update the target display. */
+function _toggleTarget(classId, root) {
+    if (classId === 0) {
+        // "Any Monster" — clear all specific selections
+        _targetClasses.clear();
+    } else {
+        if (_targetClasses.has(classId)) {
+            _targetClasses.delete(classId);
+        } else {
+            _targetClasses.add(classId);
+        }
+    }
+    _updateTargetDisplay(root);
     _refreshSelectedRow(root);
 }
 
+function _updateTargetDisplay(root) {
+    const cur = root.getElementById('ab-current-target');
+    if (!cur) return;
+    if (_targetClasses.size === 0) {
+        cur.textContent = 'Any Monster';
+    } else {
+        const names = Array.from(_targetClasses).map(function (id) {
+            const n = DB.getMonsterName(id);
+            return (n && n !== 'Unknown') ? n : ('Monster #' + id);
+        });
+        cur.textContent = names.join(', ');
+    }
+}
+
 function _refreshSelectedRow(root) {
-    root.querySelectorAll('.ab-mob-row').forEach(function (row) {
+    // "Any Monster" row: selected only when no specific targets chosen
+    const anyRow = root.getElementById('ab-any-row');
+    if (anyRow) {
+        const anyBtn = anyRow.querySelector('.ab-mob-select');
+        if (_targetClasses.size === 0) {
+            anyRow.classList.add('ab-row-selected');
+            if (anyBtn) anyBtn.textContent = '✓ Select';
+        } else {
+            anyRow.classList.remove('ab-row-selected');
+            if (anyBtn) anyBtn.textContent = 'Select';
+        }
+    }
+
+    root.querySelectorAll('.ab-mob-row:not(#ab-any-row)').forEach(function (row) {
         const cls = parseInt(row.dataset.class || '0', 10);
         const btn = row.querySelector('.ab-mob-select');
-        if (cls === _targetClass) {
+        if (_targetClasses.has(cls)) {
             row.classList.add('ab-row-selected');
             if (btn) btn.textContent = '✓ Select';
         } else {
@@ -336,6 +378,7 @@ function _refreshSelectedRow(root) {
 function _refreshList(root) {
     const list   = root.getElementById('ab-mob-list');
     const noMobs = root.getElementById('ab-no-mobs');
+    const panel  = root.getElementById('ab-panel');
     if (!list) return;
 
     const classes = _getMobListForMap();
@@ -371,30 +414,31 @@ function _refreshList(root) {
     list.querySelectorAll('.ab-mob-select').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const cls = parseInt(btn.dataset.class || '0', 10);
-            const name = cls === 0 ? 'Any Monster' : DB.getMonsterName(cls);
-            _setTarget(cls, name, root);
-            if (cls > 0) {
-                // Close panel and start attacking immediately
-                panel.classList.remove('ab-panel-open');
-                if (!_active) _toggleActive(root);
-            }
+            _toggleTarget(cls, root);
         });
     });
 
+    // "Any Monster" row toggle
+    const anyBtn = root.querySelector('#ab-any-row .ab-mob-select');
+    if (anyBtn) {
+        anyBtn.onclick = function () { _toggleTarget(0, root); };
+    }
+
     _refreshSelectedRow(root);
 
-    // Add "Start (Any Monster)" button if not already present
+    // "Start (Any Monster)" shortcut button — create once
     if (!root.getElementById('ab-start-any-btn')) {
         const startAnyBtn = document.createElement('button');
         startAnyBtn.id = 'ab-start-any-btn';
         startAnyBtn.className = 'ab-start-any-btn';
         startAnyBtn.textContent = '▶ Start (Any Monster)';
         startAnyBtn.addEventListener('click', function () {
-            _setTarget(0, 'Any Monster', root);
+            _toggleTarget(0, root);
             panel.classList.remove('ab-panel-open');
             if (!_active) _toggleActive(root);
         });
-        list.parentNode.insertBefore(startAnyBtn, root.getElementById('ab-refresh-btn'));
+        // Insert after the mob-list div (before noMobs or at end of panel)
+        list.parentNode.insertBefore(startAnyBtn, noMobs.nextSibling);
     }
 }
 
