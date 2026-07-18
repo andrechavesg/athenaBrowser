@@ -152,32 +152,32 @@ let SignBoardTable = {};
 /**
  * @const {Object} NaviMap Table
  */
-const NaviMapTable = {};
+const NaviMapTable = [];
 
 /**
  * @const {Object} NaviMob Table
  */
-const NaviMobTable = {};
+const NaviMobTable = [];
 
 /**
  * @const {Object} NaviNpc Table
  */
-const NaviNpcTable = {};
+const NaviNpcTable = [];
 
 /**
  * @const {Object} NaviLink Table
  */
-const NaviLinkTable = {};
+const NaviLinkTable = [];
 
 /**
  * @const {Object} NaviLinkDistance Table
  */
-const NaviLinkDistanceTable = {};
+const NaviLinkDistanceTable = [];
 
 /**
  * @const {Object} NaviNpcDistance Table
  */
-const NaviNpcDistanceTable = {};
+const NaviNpcDistanceTable = [];
 
 /**
  * @const {Object} QuestInfo Table
@@ -252,6 +252,36 @@ TextEncoding.setCharset(grfCharpage);
 
 // create decoders
 const userStringDecoder = TextEncoding;
+
+function __ragnarokNavigationArrayCompatibility(target, payload) {
+	if (!Array.isArray(target)) {
+		return;
+	}
+
+	if (Array.isArray(payload)) {
+		target.length = 0;
+		target.push(...payload);
+		return;
+	}
+
+	if (typeof payload !== 'object') {
+		return;
+	}
+
+	target.length = 0;
+	const numericKeys = Object.keys(payload)
+		.map(key => Number.parseInt(key, 10))
+		.filter(Number.isFinite)
+		.sort((a, b) => a - b);
+
+	for (let i = 0; i < numericKeys.length; i++) {
+		const key = numericKeys[i];
+		if (Object.prototype.hasOwnProperty.call(payload, key)) {
+			target.push(payload[key]);
+		}
+	}
+}
+
 
 /**
  * DB NameSpace
@@ -519,7 +549,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_map_krpri.lub',
 					'Navi_Map',
 					function (json) {
-						Object.assign(NaviMapTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviMapTable, json);
 					},
 					onLoad()
 				);
@@ -527,7 +557,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_mob_krpri.lub',
 					'Navi_Mob',
 					function (json) {
-						Object.assign(NaviMobTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviMobTable, json);
 					},
 					onLoad()
 				);
@@ -535,7 +565,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_npc_krpri.lub',
 					'Navi_Npc',
 					function (json) {
-						Object.assign(NaviNpcTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviNpcTable, json);
 					},
 					onLoad()
 				);
@@ -543,7 +573,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_link_krpri.lub',
 					'Navi_Link',
 					function (json) {
-						Object.assign(NaviLinkTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviLinkTable, json);
 					},
 					onLoad()
 				);
@@ -551,7 +581,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_linkdistance_krpri.lub',
 					'Navi_Distance',
 					function (json) {
-						Object.assign(NaviLinkDistanceTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviLinkDistanceTable, json);
 					},
 					onLoad()
 				);
@@ -559,7 +589,7 @@ class DB {
 					DB.LUA_PATH + 'navigation/navi_npcdistance_krpri.lub',
 					'Navi_NpcDistance',
 					function (json) {
-						Object.assign(NaviNpcDistanceTable, json);
+						__ragnarokNavigationArrayCompatibility(NaviNpcDistanceTable, json);
 					},
 					onLoad()
 				);
@@ -3506,6 +3536,14 @@ class DB {
 	 *
 	 * @returns {Array} The NaviLinkTable
 	 */
+		/**
+	 * Get the NaviMobTable (ragnarok-getNaviMobTable-v1)
+	 * @returns {Array} Each entry: ["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info]
+	 */
+	static getNaviMobTable() {
+		return NaviMobTable;
+	}
+
 	static getNaviLinkTable() {
 		return NaviLinkTable;
 	}

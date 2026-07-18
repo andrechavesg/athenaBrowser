@@ -1,3 +1,21 @@
+
+const __ragnarokAssetManifestHashV2 = "";
+function __ragnarokAppendManifestHashV2(filename) {
+	if (!__ragnarokAssetManifestHashV2 || /[?&]mh=/.test(filename)) {
+		return filename;
+	}
+	const separator = filename.includes('?') ? '&' : '?';
+	return `${filename}${separator}mh=${encodeURIComponent(__ragnarokAssetManifestHashV2)}`;
+}
+function __ragnarokCriticalUiCacheBypassV2(filename) {
+	const normalized = filename.replace(/\\/g, '/').toLowerCase();
+	// make_character/ textures exist only in data.grf — route via HTTP to remote-client
+	const isMakeCharAsset = /\/make_character\//.test(normalized);
+	// select_character_ver3/ stat-label textures need GRF fetch via HTTP
+	const isSelectCharVer3Asset = /\/select_character_ver3\/(img_info|img_slot_select)/.test(normalized);
+	return isMakeCharAsset || isSelectCharVer3Asset;
+}
+
 /**
  * Core/FileManager.js
  *
@@ -199,6 +217,10 @@ class FileManager {
 	static get(filename, callback) {
 		// Trim the path
 		filename = filename.replace(/^\s+|\s+$/g, '');
+		if (__ragnarokCriticalUiCacheBypassV2(filename)) {
+			FileManager.getHTTP(__ragnarokAppendManifestHashV2(filename), callback);
+			return;
+		}
 
 		if (fs && fs.existsSync(filename)) {
 			callback(fs.readFileSync(filename));

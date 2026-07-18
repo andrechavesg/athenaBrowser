@@ -1023,6 +1023,12 @@ function renderLayer(layer, spr, pal, size, pos, type, isBlendModeOne) {
 	let index = layer.index + 0;
 	const is_rgba = layer.spr_type === 1 || spr.rgba_index === 0;
 
+	// Guard: ensure the palette-indexed frame exists before accessing .width/.height
+	// (ragnarok-entityrender-frame-guard-v1)
+	if (!is_rgba && !spr.frames[index]) {
+		console.warn('[renderLayer] - Frame index ' + index + ' not found in sprite (indexed)');
+		return;
+	}
 	if (!is_rgba) {
 		SpriteRenderer.image.palette = pal.texture;
 		SpriteRenderer.image.size[0] = 2 * spr.frames[index].width;
