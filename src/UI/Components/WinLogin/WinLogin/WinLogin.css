@@ -65,17 +65,6 @@
 #WinLogin .pw-label {
 	top: 61px;
 }
-#WinLogin .keep-label {
-	position: absolute;
-	top: 32px;
-	right: 52px;
-	font-size: 9px;
-	font-weight: 700;
-	color: #2a4060;
-	pointer-events: none;
-	z-index: 2;
-	line-height: 10px;
-}
 #WinLogin .save {
 	position: absolute;
 	top: 32px;
