@@ -26,6 +26,51 @@
 #WinLogin input.pass {
 	top: 61px;
 }
+
+/* ── Native English text labels ── */
+#WinLogin .win-title-text {
+	position: absolute;
+	top: 5px;
+	left: 0;
+	width: 100%;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 700;
+	color: #1a3258;
+	letter-spacing: 0.5px;
+	pointer-events: none;
+	z-index: 2;
+}
+#WinLogin .field-label {
+	position: absolute;
+	left: 8px;
+	width: 78px;
+	text-align: right;
+	font-size: 10px;
+	font-weight: 700;
+	color: #2a4060;
+	letter-spacing: 0.3px;
+	pointer-events: none;
+	z-index: 2;
+	line-height: 18px;
+}
+#WinLogin .id-label {
+	top: 29px;
+}
+#WinLogin .pw-label {
+	top: 61px;
+}
+#WinLogin .keep-label {
+	position: absolute;
+	top: 32px;
+	right: 52px;
+	font-size: 9px;
+	font-weight: 700;
+	color: #2a4060;
+	pointer-events: none;
+	z-index: 2;
+	line-height: 10px;
+}
 #WinLogin .save {
 	position: absolute;
 	top: 32px;
@@ -66,75 +111,6 @@
 	-webkit-background-clip: text;
 	transition: background-color 5000sease-in-out 0s;
 	box-shadow: inset 0 0 20px 20px #ffffff00;
-}
-
-
-/* ragnarok-english-login-labels-v1 */
-
-/* ── Title overlay: "Log On" over the Korean 로그인 title area ── */
-#WinLogin {
-	position: relative;
-}
-
-#WinLogin > ui-image::before {
-	content: 'Log On';
-	position: absolute;
-	top: 5px;
-	left: 0;
-	width: 100%;
-	text-align: center;
-	font-size: 11px;
-	font-weight: 700;
-	color: #1a3258;
-	letter-spacing: 0.5px;
-	pointer-events: none;
-	z-index: 2;
-}
-
-/* ── Field labels: "ID" and "Password" floating left of each input ── */
-#WinLogin input.user::before,
-#WinLogin input.pass::before {
-	display: none;
-}
-
-#WinLogin::before {
-	content: 'ID';
-	position: absolute;
-	top: 30px;
-	left: 8px;
-	width: 78px;
-	text-align: right;
-	font-size: 10px;
-	font-weight: 700;
-	color: #2a4060;
-	letter-spacing: 0.3px;
-	pointer-events: none;
-	z-index: 2;
-}
-
-#WinLogin::after {
-	content: 'Password';
-	position: absolute;
-	top: 62px;
-	left: 8px;
-	width: 78px;
-	text-align: right;
-	font-size: 10px;
-	font-weight: 700;
-	color: #2a4060;
-	letter-spacing: 0.3px;
-	pointer-events: none;
-	z-index: 2;
-}
-
-/* ── Save/Keep checkbox: label injected via a wrapper approach ── */
-#WinLogin .save {
-	position: absolute;
-	top: 32px;
-	right: 10px;
-	display: block;
-	width: 38px;
-	height: 10px;
 }
 
 /* ragnarok-html-buttons-v2 — native <button> text, no ::after hacks */

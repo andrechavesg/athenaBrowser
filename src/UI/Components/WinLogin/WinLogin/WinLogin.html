@@ -1,14 +1,19 @@
 <div id="WinLogin">
 	<ui-image src="login_interface/win_login.bmp"></ui-image>
+	<!-- Title bar overlay -->
+	<div class="win-title-text">Log On</div>
 	<!-- User Auth -->
-	<input class="user" type="text" value="" />
-	<input class="pass" type="password" value="" />
+	<label class="field-label id-label" for="WinLoginUser">ID</label>
+	<input id="WinLoginUser" class="user" type="text" value="" />
+	<label class="field-label pw-label" for="WinLoginPass">Password</label>
+	<input id="WinLoginPass" class="pass" type="password" value="" />
 	<button
 		class="save"
 		type="button"
 		data-background="login_interface/chk_saveoff.bmp"
 		data-preload="login_interface/chk_saveon.bmp"
 	></button>
+	<span class="keep-label">Keep</span>
 
 	<!-- Buttons -->
 	<button class="btn signup" type="button">Request</button>
