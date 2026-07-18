@@ -9,6 +9,11 @@
 	height: 342px;
 }
 
+/* Hide Korean BMP background (win_select.bmp) */
+#charselect > ui-image:first-child {
+	display: none !important;
+}
+
 /** Box **/
 #charselect .box_select {
 	position: absolute;
