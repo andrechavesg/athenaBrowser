@@ -337,41 +337,37 @@ const CSS = `
 
 #ab-toggle {
     pointer-events: all;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid #4a6a9a;
-    background: linear-gradient(180deg, rgba(20,45,90,0.92) 0%, rgba(10,25,55,0.92) 100%);
-    color: #b8d4ff;
-    font-size: 12px;
-    font-weight: 700;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid #3a5a8a;
+    background: rgba(15, 25, 50, 0.85);
+    color: #90b8e0;
+    font-size: 20px;
     cursor: pointer;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    transition: background 0.15s, border-color 0.15s;
-    letter-spacing: 0.4px;
+    transition: all 0.15s;
 }
-#ab-toggle:hover { border-color: #7aa8e0; filter: brightness(1.15); }
+#ab-toggle:hover {
+    border-color: #6090c0;
+    background: rgba(20, 40, 80, 0.9);
+    filter: brightness(1.15);
+}
 #ab-toggle.ab-active {
-    border-color: #e07030;
-    background: linear-gradient(180deg, rgba(90,35,10,0.95) 0%, rgba(60,20,5,0.95) 100%);
-    color: #ffcc88;
-    box-shadow: 0 2px 10px rgba(200,80,20,0.45);
+    border-color: #e06020;
+    color: #ff8040;
+    box-shadow: 0 0 8px rgba(255, 100, 0, 0.6);
 }
-#ab-toggle .ab-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #4a6a9a;
-    transition: background 0.15s;
-}
-#ab-toggle.ab-active .ab-dot { background: #ff7030; box-shadow: 0 0 4px #ff7030; }
 
 #ab-panel {
     pointer-events: all;
     position: absolute;
-    bottom: 34px;
+    bottom: 48px;
     right: 0;
     width: 260px;
     border-radius: 8px;
@@ -475,10 +471,7 @@ function _buildDOM() {
             </div>
             <div id="ab-no-mobs">No monsters nearby</div>
         </div>
-        <div id="ab-toggle">
-            <span class="ab-dot"></span>
-            <span id="ab-label">Auto Battle</span>
-        </div>
+        <div id="ab-toggle" title="Auto Battle (⚔)">⚔</div>
     `;
     document.body.appendChild(host);
     return host;
@@ -491,7 +484,7 @@ function _wireEvents(root) {
     const closeBtn = root.querySelector('#ab-close-panel');
 
     toggle.addEventListener('click', function (e) {
-        if (e.target === toggle || e.target.classList.contains('ab-dot') || e.target.id === 'ab-label') {
+        if (e.target === toggle) {
             if (_active) {
                 _toggleActive(root);
             } else if (_targetClasses.size > 0) {
@@ -521,16 +514,13 @@ function _wireEvents(root) {
 function _toggleActive(root) {
     _active = !_active;
     const toggle = root.querySelector('#ab-toggle');
-    const label  = root.querySelector('#ab-label');
     if (_active) {
         toggle.classList.add('ab-active');
-        label.textContent = 'Auto Battle ON';
         if (!_intervalId) {
             _intervalId = setInterval(_tick, TICK_MS);
         }
     } else {
         toggle.classList.remove('ab-active');
-        label.textContent = 'Auto Battle';
         if (_intervalId) {
             clearInterval(_intervalId);
             _intervalId = null;

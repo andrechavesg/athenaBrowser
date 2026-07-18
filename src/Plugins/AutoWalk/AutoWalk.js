@@ -212,7 +212,7 @@ const CSS = `
 #aw-host {
     position: fixed;
     bottom: 8px;
-    right: 100px;
+    right: 56px;
     z-index: 9000;
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
@@ -222,41 +222,37 @@ const CSS = `
 
 #aw-toggle {
     pointer-events: all;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid #3a7a4a;
-    background: linear-gradient(180deg, rgba(10,40,20,0.92) 0%, rgba(5,20,10,0.92) 100%);
-    color: #88ccaa;
-    font-size: 12px;
-    font-weight: 700;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid #2a7a4a;
+    background: rgba(10, 25, 15, 0.85);
+    color: #60c888;
+    font-size: 20px;
     cursor: pointer;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    transition: background 0.15s, border-color 0.15s;
-    letter-spacing: 0.4px;
+    transition: all 0.15s;
 }
-#aw-toggle:hover { border-color: #5aaa6a; filter: brightness(1.15); }
+#aw-toggle:hover {
+    border-color: #50a870;
+    background: rgba(15, 40, 25, 0.9);
+    filter: brightness(1.15);
+}
 #aw-toggle.aw-active {
-    border-color: #30c060;
-    background: linear-gradient(180deg, rgba(10,70,30,0.95) 0%, rgba(5,40,15,0.95) 100%);
-    color: #80ff99;
-    box-shadow: 0 2px 10px rgba(20,160,60,0.45);
+    border-color: #20c060;
+    color: #40e080;
+    box-shadow: 0 0 8px rgba(0, 200, 80, 0.6);
 }
-#aw-toggle .aw-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #3a7a4a;
-    transition: background 0.15s;
-}
-#aw-toggle.aw-active .aw-dot { background: #30ff70; box-shadow: 0 0 4px #30ff70; }
 
 #aw-panel {
     pointer-events: all;
     position: absolute;
-    bottom: 34px;
+    bottom: 48px;
     right: 0;
     width: 260px;
     border-radius: 8px;
@@ -515,10 +511,7 @@ function _buildDOM() {
             </div>
             <button id="aw-start">▶ Start</button>
         </div>
-        <div id="aw-toggle">
-            <span class="aw-dot"></span>
-            <span id="aw-label">Auto Walk</span>
-        </div>
+        <div id="aw-toggle" title="Auto Walk (🚶)">🚶</div>
     `;
     document.body.appendChild(host);
     return host;
@@ -701,12 +694,10 @@ function _stopCapture(root) {
 function _toggleActive(root) {
     _active = !_active;
     const toggle  = root.querySelector('#aw-toggle');
-    const label   = root.querySelector('#aw-label');
     const startBtn = root.querySelector('#aw-start');
 
     if (_active) {
         toggle.classList.add('aw-active');
-        label.textContent = 'Auto Walk ON';
         if (startBtn) {
             startBtn.classList.add('aw-running');
             startBtn.textContent = '⏹ Stop';
@@ -716,7 +707,6 @@ function _toggleActive(root) {
         }
     } else {
         toggle.classList.remove('aw-active');
-        label.textContent = 'Auto Walk';
         if (startBtn) {
             startBtn.classList.remove('aw-running');
             startBtn.textContent = '▶ Start';
