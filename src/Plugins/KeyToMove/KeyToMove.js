@@ -9,7 +9,6 @@
  * Based on Vincent Thibault's gist: https://gist.github.com/vthibault/9d5c08c111db2eabfc37
  */
 
-import jQuery    from 'Utils/jquery.js';
 import glMatrix  from 'Vendors/gl-matrix.js';
 import Session   from 'Engine/SessionStorage.js';
 import Network   from 'Network/NetworkManager.js';
@@ -36,7 +35,7 @@ let keysDownTimeout = null;
 function processKeyDownEvent( event ) {
 	if (event.which === MOVE.RIGHT || event.which === MOVE.LEFT || event.which === MOVE.UP || event.which === MOVE.DOWN) {
 		if (document.activeElement.tagName === 'INPUT') return true;
-		if (jQuery('#NpcMenu, #NpcBox').length) return true;
+		if (document.querySelector('#NpcMenu, #NpcBox')) return true;
 		if(Session.Playing && Session.Entity){
 			let gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
 			if(!(Array.from(gamepads).some(gp => gp?.buttons?.slice(12, 16).some(b => b.pressed)))){
@@ -86,11 +85,11 @@ function processKeysDown(){
 }
 
 export default function Init(){
-	jQuery(window).on('keydown.map', function( event ){
-		processKeyDownEvent(event);
+	window.addEventListener('keydown', function( event ){
+		processKeyDownEvent({ which: event.which || event.keyCode, stopImmediatePropagation: () => event.stopImmediatePropagation(), originalEvent: event });
 	});
-	jQuery(window).on('keyup.map', function( event ){
-		processKeyUpEvent(event);
+	window.addEventListener('keyup', function( event ){
+		processKeyUpEvent({ which: event.which || event.keyCode });
 	});
 	return true;
 }
