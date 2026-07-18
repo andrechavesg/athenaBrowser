@@ -118,7 +118,7 @@ import ClanEngine from './MapEngine/Clan.js';
 import CashShopEngine from './MapEngine/CashShop.js';
 import BankEngine from './MapEngine/Bank.js';
 import AchievementEngine from './MapEngine/Achievement.js';
-import AutoBattle from 'UI/Components/AutoBattle/AutoBattle.js'; // ragnarok-autobattle-v1
+import AutoBattle from 'Plugins/AutoBattle/AutoBattle.js';
 import KeyToMove from 'Plugins/KeyToMove/KeyToMove.js';
 
 /**
@@ -716,7 +716,7 @@ function onMapChange(pkt) {
 		MobileUI.append();
 		JoystickUI.append();
 		Navigation.append();
-		AutoBattle.append(); // ragnarok-autobattle-v1
+		AutoBattle(); // plugin init
 		KeyToMove();
 		Roulette.append();
 		if (Configs.get('enableAchievements') && PACKETVER.value >= 20150513) {
