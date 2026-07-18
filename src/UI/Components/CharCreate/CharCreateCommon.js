@@ -525,43 +525,46 @@ export function createCharCreate(config) {
 	 * Msgstring Texts
 	 */
 	function applyRaceMessages(root) {
+		const resolveMsg = (msgId, fallbackText) => {
+			const value = DB.getMessage(msgId - 1, fallbackText);
+			if (typeof value !== 'string') return fallbackText;
+			const normalized = value.trim();
+			if (
+				!normalized ||
+				/^NO MSG\s+\d+$/i.test(normalized) ||
+				/^no character$/i.test(normalized) ||
+				/^empty slot/i.test(normalized)
+			) {
+				return fallbackText;
+			}
+			return value;
+		};
 		if (gridHairstyle) {
-			root.querySelector('.title').textContent = DB.getMessage(3356 - 1);
-			root.querySelector('.human_title').textContent = DB.getMessage(3017 - 1);
-			root.querySelector('.human_desc').textContent = DB.getMessage(3021 - 1);
-			root.querySelector('.doram_title').textContent = DB.getMessage(3019 - 1);
-			root.querySelector('.doram_desc').textContent = DB.getMessage(3022 - 1);
-			root.querySelector('.hair_style_title').textContent = DB.getMessage(3347 - 1);
-			root.querySelector('.hair_color_title').textContent = DB.getMessage(3348 - 1);
-			root.querySelector('.return').textContent = DB.getMessage(3352 - 1);
-			root.querySelector('.make').textContent = DB.getMessage(3346 - 1);
+			root.querySelector('.title').textContent = resolveMsg(3356, 'Create Character');
+			root.querySelector('.human_title').textContent = resolveMsg(3017, 'Novice');
+			root.querySelector('.human_desc').textContent = resolveMsg(3021, 'Balanced Midgard adventurer. Suitable for all new players.');
+			root.querySelector('.doram_title').textContent = resolveMsg(3019, 'Doram');
+			root.querySelector('.doram_desc').textContent = resolveMsg(3022, 'Lasagna native focused on spirit-based combat.');
+			root.querySelector('.hair_style_title').textContent = resolveMsg(3347, 'Hair Style');
+			root.querySelector('.hair_color_title').textContent = resolveMsg(3348, 'Hair Color');
+			root.querySelector('.return').textContent = resolveMsg(3352, 'Back');
+			root.querySelector('.make').textContent = resolveMsg(3346, 'Create');
 		} else {
-						const resolveCharCreateMessage = (msgId, fallbackText) => {
-				const value = DB.getMessage(msgId - 1, fallbackText);
-				if (typeof value !== 'string') {
-					return fallbackText;
-				}
-				const normalized = value.trim();
-				if (!normalized || /^NO MSG\s+\d+$/i.test(normalized)) {
-					return fallbackText;
-				}
-				return value;
-			};
-			root.querySelector('.race_select .human .title').textContent = resolveCharCreateMessage(3017, 'Novice');
-			root.querySelector('.race_select .human .desc').textContent = resolveCharCreateMessage(
+			root.querySelector('.race_select .human .title').textContent = resolveMsg(3017, 'Novice');
+			root.querySelector('.race_select .human .desc').textContent = resolveMsg(
 				3021,
 				'Balanced Midgard adventurer. Suitable for all new players.'
 			);
-			root.querySelector('.race_select .human .jobs').textContent = resolveCharCreateMessage(
+			root.querySelector('.race_select .human .jobs').textContent = resolveMsg(
 				3018,
 				'Swordsman / Mage / Archer / Acolyte / Merchant / Thief'
 			);
-			root.querySelector('.race_select .doram .title').textContent = resolveCharCreateMessage(3019, 'Doram');
-			root.querySelector('.race_select .doram .desc').textContent = resolveCharCreateMessage(
+			root.querySelector('.race_select .doram .title').textContent = resolveMsg(3019, 'Doram');
+			root.querySelector('.race_select .doram .desc').textContent = resolveMsg(
 				3022,
 				'Lasagna native focused on spirit-based combat.'
 			);
-			root.querySelector('.race_select .doram .jobs').textContent = resolveCharCreateMessage(3020, 'Summoner');
+			root.querySelector('.race_select .doram .jobs').textContent = resolveMsg(3020, 'Summoner');
 		}
 	}
 

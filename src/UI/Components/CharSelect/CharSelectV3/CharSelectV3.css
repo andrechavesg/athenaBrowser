@@ -245,3 +245,49 @@
 #CharSelectV3 button.btn:active {
 	background: linear-gradient(to bottom, #a8c0dc, #d0dff0);
 }
+
+/* ragnarok-visual-theme — consistent with CharCreate */
+
+#CharSelectV3 .charinfo {
+	background: rgba(10, 25, 50, 0.55);
+	border: 1px solid rgba(100, 150, 220, 0.35);
+	border-radius: 4px;
+	padding: 4px 6px;
+	font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+	font-size: 11px;
+	color: #d8e8f8;
+}
+#CharSelectV3 .charinfo .name {
+	color: #f0f8ff;
+	font-weight: bold;
+	font-size: 12px;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+#CharSelectV3 .charinfo .job,
+#CharSelectV3 .charinfo .lvl,
+#CharSelectV3 .charinfo .exp,
+#CharSelectV3 .charinfo .hp,
+#CharSelectV3 .charinfo .sp,
+#CharSelectV3 .charinfo .map {
+	color: #b8d4f0;
+	font-size: 11px;
+}
+#CharSelectV3 .charinfo .str,
+#CharSelectV3 .charinfo .agi,
+#CharSelectV3 .charinfo .vit,
+#CharSelectV3 .charinfo .int,
+#CharSelectV3 .charinfo .dex,
+#CharSelectV3 .charinfo .luk {
+	color: #c8e0ff;
+	font-size: 11px;
+}
+#CharSelectV3 .slotinfo .number {
+	color: #8ab4d8;
+	font-size: 11px;
+	font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+}
+#CharSelectV3 .slotinfo .content {
+	color: #7a9cc0;
+	font-size: 11px;
+	font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+}
