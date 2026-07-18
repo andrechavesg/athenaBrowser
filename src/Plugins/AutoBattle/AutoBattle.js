@@ -176,12 +176,21 @@ function _findTarget() {
  * Returns true when cell (x, y) is walkable according to the loaded GAT data.
  * Uses Altitude.getCellType() & Altitude.TYPE.WALKABLE — the same check used
  * by MapRenderer and EntityManager throughout roBrowserLegacy.
+ *
+ * Falls back to a permissive bounds-only check when the GAT/Altitude module is
+ * unavailable or returns undefined (e.g. before the map data has fully loaded).
+ * The server will silently ignore a move to a non-walkable cell, so a false
+ * positive here is harmless while a false negative kills wander entirely.
  */
 function _isCellWalkable(x, y) {
     try {
-        return !!(Altitude.getCellType(x, y) & Altitude.TYPE.WALKABLE);
+        const cellType = Altitude.getCellType(x, y);
+        if (cellType === undefined || cellType === null) {
+            return x > 0 && y > 0 && x < 512 && y < 512;
+        }
+        return !!(cellType & Altitude.TYPE.WALKABLE);
     } catch (_) {
-        return false;
+        return x > 0 && y > 0 && x < 512 && y < 512;
     }
 }
 
@@ -274,17 +283,21 @@ function _getMobListForMap() {
     const naviMobs = DB.getNaviMobTable ? DB.getNaviMobTable() : [];
     for (let i = 0; i < naviMobs.length; i++) {
         const entry = naviMobs[i];
-        if (!Array.isArray(entry) || entry.length < 5) continue;
+        if (!Array.isArray(entry) || entry.length < 6) continue;
         const entryMap = String(entry[0]).replace(/\.gat$/i, '');
         if (mapName && entryMap !== mapName) continue;
-        const classId = Number(entry[3]);
-        if (!classId) continue;
+        // Navi_Mob entry layout (Hercules naviluagenerator format):
+        //   [0] map_name  [1] global_spawn_id  [2] mob_type(300/301)
+        //   [3] (amount<<16 | class) — packed field, NOT the plain class ID
+        //   [4] mob_class  [5] mob_name  [6] sprite  [7] level  [8] race/ele/size
+        const classId = Number(entry[4]);
+        if (!classId || classId < 1000 || classId > 10000) continue;
         if (!byClass[classId]) {
             // Always prefer English MonsterNameTable; use NaviMobTable name only
             // as a last resort — NaviMobTable names are Korean (EUC-KR) and come
             // out garbled when the charpage is windows-1252.
             const tableName = DB.getMonsterName(classId);
-            const naviName  = _sanitizeName(String(entry[4] || ''));
+            const naviName  = _sanitizeName(String(entry[5] || ''));
             const name = (tableName !== 'Unknown') ? tableName
                        : naviName                  ? naviName
                        : ('Monster #' + classId);

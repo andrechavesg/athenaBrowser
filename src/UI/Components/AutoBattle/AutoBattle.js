@@ -199,18 +199,21 @@ function _getMobListForMap() {
     const naviMobs = DB.getNaviMobTable ? DB.getNaviMobTable() : [];
     for (let i = 0; i < naviMobs.length; i++) {
         const entry = naviMobs[i];
-        // entry: ["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info]
-        if (!Array.isArray(entry) || entry.length < 5) continue;
+        // Navi_Mob entry layout (Hercules naviluagenerator format):
+        //   [0] map_name  [1] global_spawn_id  [2] mob_type(300/301)
+        //   [3] (amount<<16 | class) — packed field, NOT the plain class ID
+        //   [4] mob_class  [5] mob_name  [6] sprite  [7] level  [8] race/ele/size
+        if (!Array.isArray(entry) || entry.length < 6) continue;
         const entryMap = String(entry[0]).replace(/\.gat$/i, '');
         if (mapName && entryMap !== mapName) continue;
-        const classId = Number(entry[3]);
-        if (!classId) continue;
+        const classId = Number(entry[4]);
+        if (!classId || classId < 1000 || classId > 10000) continue;
         if (!byClass[classId]) {
             // Always prefer English MonsterNameTable; use NaviMobTable name only
             // as a last resort — NaviMobTable names are Korean (EUC-KR) and come
             // out garbled when the charpage is windows-1252.
             const tableName = DB.getMonsterName(classId);
-            const naviName  = _sanitizeName(String(entry[4] || ''));
+            const naviName  = _sanitizeName(String(entry[5] || ''));
             const name = (tableName !== 'Unknown') ? tableName
                        : naviName                  ? naviName
                        : ('Monster #' + classId);
