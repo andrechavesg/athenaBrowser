@@ -1084,6 +1084,8 @@ export function createCharSelect(config) {
 			charinfo.querySelectorAll('div').forEach(div => {
 				div.textContent = '';
 			});
+			// Guard: skip empty-slot label when this shared code runs inside a CharCreate context
+			if (name && /^CharCreate/i.test(name)) return;
 			// ragnarok-charselect-v2-empty-slot
 			charinfo.querySelector('.name').textContent = `Empty Slot ${_index + 1}`;
 			root.querySelector('.make').style.display = 'block';
