@@ -119,6 +119,7 @@ import CashShopEngine from './MapEngine/CashShop.js';
 import BankEngine from './MapEngine/Bank.js';
 import AchievementEngine from './MapEngine/Achievement.js';
 import AutoBattle from 'Plugins/AutoBattle/AutoBattle.js';
+import AutoWalk, { onMapChange as AutoWalkMapChange } from 'Plugins/AutoWalk/AutoWalk.js';
 import KeyToMove from 'Plugins/KeyToMove/KeyToMove.js';
 
 /**
@@ -717,6 +718,7 @@ function onMapChange(pkt) {
 		JoystickUI.append();
 		Navigation.append();
 		AutoBattle(); // plugin init
+		AutoWalk();   // plugin init
 		KeyToMove();
 		Roulette.append();
 		if (Configs.get('enableAchievements') && PACKETVER.value >= 20150513) {
