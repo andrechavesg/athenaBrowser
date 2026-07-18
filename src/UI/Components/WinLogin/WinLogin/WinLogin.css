@@ -9,17 +9,10 @@
 	position: absolute;
 	width: 280px;
 	height: 120px;
-	/* Replace Korean BMP background with a clean styled panel */
-	background: linear-gradient(to bottom, #d8e8f8 0px, #b8cce4 100%);
-	background-image: linear-gradient(to bottom, #4870a8 0px, #3a5e8e 20px, #d8e8f8 20px, #b8cce4 100%);
+	background: linear-gradient(to bottom, #4870a8 0px, #3a5e8e 20px, #d8e8f8 20px, #b8cce4 100%);
 	border: 2px outset #8aaac8;
 	border-radius: 3px;
 	box-sizing: border-box;
-}
-
-/* Hide the Korean BMP background image entirely */
-#WinLogin > ui-image {
-	display: none !important;
 }
 
 #WinLogin input {
