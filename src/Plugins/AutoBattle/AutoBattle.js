@@ -30,6 +30,29 @@ const TICK_MS   = 600;
 const MAX_RANGE = 14;  // cells
 
 // ── helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Returns null when `name` appears to be a garbled EUC-KR/windows-949 string
+ * that was decoded as windows-1252 (latin1).  Such strings contain a high ratio
+ * of characters in the 0x80–0xFF range that form non-sensical latin sequences.
+ *
+ * Heuristic: if more than 30 % of codepoints are outside printable ASCII (0x20–
+ * 0x7E) the string is considered garbled and null is returned so callers can
+ * fall back to the English MonsterNameTable.
+ */
+function _sanitizeName(name) {
+    if (!name || typeof name !== 'string') return null;
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === 'Unknown') return null;
+    let nonAscii = 0;
+    for (let i = 0; i < trimmed.length; i++) {
+        const c = trimmed.charCodeAt(i);
+        if (c < 0x20 || c > 0x7E) nonAscii++;
+    }
+    if (nonAscii / trimmed.length > 0.30) return null;
+    return trimmed;
+}
+
 function _sendAttack(target) {
     const player = Session.Entity;
     if (!player || !player.position) return;
@@ -65,13 +88,23 @@ function _sendAttack(target) {
         out
     );
 
-    if (!count) return;
+    console.log('[AutoBattle] sendAttack: range='+range+' pathCount='+count+
+        ' player=('+player.position[0]+'|0,'+player.position[1]+'|0)'+
+        ' target=('+target.position[0]+','+target.position[1]+')');
+
+    if (!count) {
+        console.warn('[AutoBattle] sendAttack: PathFinding returned 0 (no path)');
+        return;
+    }
 
     if (count < 2) {
+        console.log('[AutoBattle] sendAttack: in range → sending attack packet');
         Network.sendPacket(atkPkt);
         return;
     }
 
+    console.log('[AutoBattle] sendAttack: out of range → walking to (' +
+        out[(count-1)*2] + ',' + out[(count-1)*2+1] + '), queuing attack');
     Session.moveAction = atkPkt;
 
     let movePkt;
@@ -134,8 +167,15 @@ function _findTarget() {
 
 function _tick() {
     if (!_active) return;
+    const player = Session.Entity;
+    if (!player || !player.position) {
+        console.warn('[AutoBattle] tick: no player entity or position');
+        return;
+    }
     const target = _findTarget();
     if (!target) return;
+    console.log('[AutoBattle] tick → attack GID', target.GID, 'job', target.job,
+        'pos', target.position[0], target.position[1]);
     _sendAttack(target);
 }
 
@@ -159,11 +199,14 @@ function _getMobListForMap() {
         const classId = Number(entry[3]);
         if (!classId) continue;
         if (!byClass[classId]) {
-            const naviName  = String(entry[4] || '').trim();
+            // Always prefer English MonsterNameTable; use NaviMobTable name only
+            // as a last resort — NaviMobTable names are Korean (EUC-KR) and come
+            // out garbled when the charpage is windows-1252.
             const tableName = DB.getMonsterName(classId);
-            const name = (naviName && naviName !== 'Unknown') ? naviName
-                       : (tableName !== 'Unknown')            ? tableName
-                       : naviName || ('Class ' + classId);
+            const naviName  = _sanitizeName(String(entry[4] || ''));
+            const name = (tableName !== 'Unknown') ? tableName
+                       : naviName                  ? naviName
+                       : ('Monster #' + classId);
             byClass[classId] = { classId, name, mapCount: 0, visibleCount: 0 };
         }
         byClass[classId].mapCount++;
@@ -173,10 +216,10 @@ function _getMobListForMap() {
     visible.forEach(function (m) {
         if (!byClass[m.job]) {
             const tableName = DB.getMonsterName(m.job);
-            const dispName  = (m.display && m.display.name) ? String(m.display.name).trim() : '';
+            const dispName  = (m.display && m.display.name) ? _sanitizeName(String(m.display.name)) : null;
             const name = (tableName !== 'Unknown') ? tableName
                        : dispName                  ? dispName
-                       : ('Class ' + m.job);
+                       : ('Monster #' + m.job);
             byClass[m.job] = { classId: m.job, name, mapCount: 0, visibleCount: 0 };
         }
         byClass[m.job].visibleCount++;
@@ -454,9 +497,11 @@ function _refreshList(root) {
             const row = document.createElement('div');
             row.className = 'ab-mob-row';
             row.dataset.class = String(info.classId);
-            const countLabel = info.mapCount > 0
-                ? (info.visibleCount + ' / ' + info.mapCount)
-                : (info.visibleCount > 0 ? '~' + info.visibleCount : '?');
+            const vis = Math.max(0, info.visibleCount);
+            const tot = Math.max(0, info.mapCount);
+            const countLabel = tot > 0
+                ? (vis + ' / ' + tot)
+                : (vis > 0 ? '~' + vis : '?');
             row.innerHTML =
                 '<div class="ab-mob-id">#' + info.classId + '</div>' +
                 '<div class="ab-mob-name">' + _esc(info.name) + '</div>' +
