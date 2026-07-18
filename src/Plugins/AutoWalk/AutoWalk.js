@@ -388,6 +388,90 @@ const CSS = `
     color: #ff8877;
 }
 #aw-start.aw-running:hover { filter: brightness(1.1); }
+
+#aw-route-section {
+    margin-top: 8px;
+    border-top: 1px solid rgba(58,122,74,0.4);
+    padding-top: 6px;
+}
+.aw-route-map-label {
+    color: #3a7a4a;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+.aw-route-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+#aw-route-name {
+    flex: 1;
+    padding: 3px 5px;
+    border-radius: 3px;
+    border: 1px solid #2a5a3a;
+    background: rgba(10,30,18,0.9);
+    color: #88ccaa;
+    font-size: 10px;
+    outline: none;
+}
+#aw-route-name::placeholder { color: #2a5a3a; }
+#aw-route-name:focus { border-color: #40aa55; }
+#aw-save-route {
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: 1px solid #2a5a3a;
+    background: rgba(10,50,25,0.9);
+    color: #55aa77;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#aw-save-route:hover { border-color: #40aa55; color: #88ffaa; }
+#aw-saved-routes {
+    max-height: 100px;
+    overflow-y: auto;
+}
+#aw-saved-routes::-webkit-scrollbar { width: 4px; }
+#aw-saved-routes::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 2px; }
+#aw-saved-routes::-webkit-scrollbar-thumb { background: #2a5a3a; border-radius: 2px; }
+.aw-no-routes { color: #2a5a3a; font-size: 10px; text-align: center; padding: 4px 0; }
+.aw-route-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 5px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    background: rgba(10,40,20,0.5);
+    border: 1px solid rgba(58,122,74,0.3);
+}
+.aw-route-name-label { color: #88ccaa; font-size: 10px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw-route-count { color: #3a7a4a; font-size: 9px; white-space: nowrap; }
+.aw-load-btn {
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #2a5a3a;
+    background: rgba(10,40,20,0.8);
+    color: #55aa77;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.aw-load-btn:hover { border-color: #40aa55; color: #88ffaa; }
+.aw-del-btn {
+    cursor: pointer;
+    color: #7a3a3a;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0 3px;
+    border-radius: 2px;
+    background: none;
+    border: none;
+}
+.aw-del-btn:hover { color: #ff6666; background: rgba(80,10,10,0.5); }
 `;
 
 function _buildDOM() {
@@ -418,6 +502,16 @@ function _buildDOM() {
                     <button id="aw-add-wp">＋ Add (click map)</button>
                     <button id="aw-clear-wp">✕ Clear All</button>
                 </div>
+                <div id="aw-route-section">
+                    <div class="aw-route-map-label" id="aw-route-map-label">Routes for: —</div>
+                    <div class="aw-route-bar">
+                        <input id="aw-route-name" type="text" placeholder="Route name..." maxlength="30" />
+                        <button id="aw-save-route">💾 Save</button>
+                    </div>
+                    <div id="aw-saved-routes">
+                        <div class="aw-no-routes">No saved routes for this map</div>
+                    </div>
+                </div>
             </div>
             <button id="aw-start">▶ Start</button>
         </div>
@@ -437,6 +531,96 @@ function _esc(str) {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+}
+
+// ── route persistence (localStorage) ─────────────────────────────────────────
+
+const STORAGE_KEY = 'aw_routes';
+
+function _loadAllRoutes() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch (e) { return {}; }
+}
+
+function _saveAllRoutes(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function _getMapName() {
+    try {
+        // MapRenderer.currentMap is set by the engine when a map loads
+        if (window.MapRenderer && MapRenderer.currentMap) return MapRenderer.currentMap;
+    } catch (e) {}
+    return 'unknown';
+}
+
+function _saveRoute(name) {
+    if (!name || !_waypoints.length) return;
+    const all = _loadAllRoutes();
+    const map = _getMapName();
+    if (!all[map]) all[map] = {};
+    all[map][name] = _waypoints.map(function (wp) { return { x: wp.x, y: wp.y }; });
+    _saveAllRoutes(all);
+    _refreshSavedRoutesList(_root);
+}
+
+function _loadRoute(name) {
+    const all = _loadAllRoutes();
+    const map = _getMapName();
+    const route = all[map] && all[map][name];
+    if (!route) return;
+    _waypoints    = route.map(function (wp) { return { x: wp.x, y: wp.y }; });
+    _waypointIdx  = 0;
+    if (_root) _refreshWaypointList(_root);
+}
+
+function _deleteRoute(name) {
+    if (!confirm('Delete route "' + name + '"?')) return;
+    const all = _loadAllRoutes();
+    const map = _getMapName();
+    if (all[map]) {
+        delete all[map][name];
+        if (Object.keys(all[map]).length === 0) delete all[map];
+    }
+    _saveAllRoutes(all);
+    _refreshSavedRoutesList(_root);
+}
+
+function _refreshSavedRoutesList(root) {
+    if (!root) return;
+    const container = root.querySelector('#aw-saved-routes');
+    const mapLabel  = root.querySelector('#aw-route-map-label');
+    if (!container) return;
+
+    const map       = _getMapName();
+    const all       = _loadAllRoutes();
+    const mapRoutes = (all[map] && Object.keys(all[map])) || [];
+
+    if (mapLabel) {
+        mapLabel.textContent = 'Routes for: ' + (map === 'unknown' ? '—' : map);
+    }
+
+    if (mapRoutes.length === 0) {
+        container.innerHTML = '<div class="aw-no-routes">No saved routes for this map</div>';
+        return;
+    }
+
+    container.innerHTML = mapRoutes.map(function (name) {
+        var count = all[map][name].length;
+        return '<div class="aw-route-row">' +
+            '<span class="aw-route-name-label">' + _esc(name) + '</span>' +
+            '<span class="aw-route-count">' + count + ' pts</span>' +
+            '<button class="aw-load-btn" data-route="' + _esc(name) + '">Load</button>' +
+            '<button class="aw-del-btn" data-route="' + _esc(name) + '">×</button>' +
+            '</div>';
+    }).join('');
+
+    container.querySelectorAll('.aw-load-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { _loadRoute(btn.dataset.route); });
+    });
+    container.querySelectorAll('.aw-del-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { _deleteRoute(btn.dataset.route); });
+    });
 }
 
 function _refreshWaypointList(root) {
@@ -492,6 +676,7 @@ function _setMode(mode, root) {
         btnRandom.classList.remove('aw-mode-active');
         wpSection.style.display = 'block';
         _refreshWaypointList(root);
+        _refreshSavedRoutesList(root);
     }
 }
 
@@ -555,6 +740,8 @@ function _wireEvents(root) {
     const btnWP      = root.querySelector('#aw-mode-waypoint');
     const addWPBtn   = root.querySelector('#aw-add-wp');
     const clearWPBtn = root.querySelector('#aw-clear-wp');
+    const saveRouteBtn  = root.querySelector('#aw-save-route');
+    const routeNameInp  = root.querySelector('#aw-route-name');
 
     // Toggle button: left-click toggles active, right-click opens panel
     toggle.addEventListener('click', function (e) {
@@ -599,6 +786,17 @@ function _wireEvents(root) {
         _refreshWaypointList(root);
     });
 
+    saveRouteBtn.addEventListener('click', function () {
+        const name = routeNameInp.value.trim();
+        if (!name) { routeNameInp.focus(); return; }
+        if (!_waypoints.length) {
+            alert('No waypoints to save.');
+            return;
+        }
+        _saveRoute(name);
+        routeNameInp.value = '';
+    });
+
     // Canvas mouseup — used for waypoint coordinate capture.
     // Mouse.world.{x,y} is updated by MapRenderer.onRender on every frame,
     // so at mouseup time it holds the last hovered map cell.
@@ -629,6 +827,7 @@ export function onMapChange() {
     _walkCooldown  = 0;
     if (_root) {
         _refreshWaypointList(_root);
+        _refreshSavedRoutesList(_root);
         _stopCapture(_root);
     }
     console.log('[AutoWalk] map changed — waypoints cleared');
