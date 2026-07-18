@@ -201,3 +201,16 @@
 #CharSelectV2 .timedelete.slot3 {
 	left: 389px;
 }
+
+/* ragnarok-english-button-labels-v1 */
+
+#CharSelectV2 .btn {
+	font-size: 0;
+	color: transparent;
+}
+#CharSelectV2 .delete::after    { content: 'Delete';     font-size: 12px; color: #1a3658; }
+#CharSelectV2 .canceldelete::after { content: 'Undo Del'; font-size: 12px; color: #1a3658; }
+#CharSelectV2 .finaldelete::after { content: 'Confirm';  font-size: 12px; color: #1a3658; }
+#CharSelectV2 .ok::after        { content: 'Enter';      font-size: 12px; color: #1a3658; }
+#CharSelectV2 .make::after      { content: 'Create';     font-size: 12px; color: #1a3658; }
+#CharSelectV2 .cancel::after    { content: 'Cancel';     font-size: 12px; color: #1a3658; }

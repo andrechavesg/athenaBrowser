@@ -66,3 +66,131 @@
 	transition: background-color 5000sease-in-out 0s;
 	box-shadow: inset 0 0 20px 20px #ffffff00;
 }
+
+
+/* ragnarok-english-login-labels-v1 */
+
+/* ── Title overlay: "Log On" over the Korean 로그인 title area ── */
+#WinLogin {
+	position: relative;
+}
+
+#WinLogin > ui-image::before {
+	content: 'Log On';
+	position: absolute;
+	top: 5px;
+	left: 0;
+	width: 100%;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 700;
+	color: #1a3258;
+	letter-spacing: 0.5px;
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* ── Field labels: "ID" and "Password" floating left of each input ── */
+#WinLogin input.user::before,
+#WinLogin input.pass::before {
+	display: none;
+}
+
+#WinLogin::before {
+	content: 'ID';
+	position: absolute;
+	top: 30px;
+	left: 8px;
+	width: 78px;
+	text-align: right;
+	font-size: 10px;
+	font-weight: 700;
+	color: #2a4060;
+	letter-spacing: 0.3px;
+	pointer-events: none;
+	z-index: 2;
+}
+
+#WinLogin::after {
+	content: 'Password';
+	position: absolute;
+	top: 62px;
+	left: 8px;
+	width: 78px;
+	text-align: right;
+	font-size: 10px;
+	font-weight: 700;
+	color: #2a4060;
+	letter-spacing: 0.3px;
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* ── Save/Keep checkbox: label injected via a wrapper approach ── */
+#WinLogin .save {
+	position: absolute;
+	top: 32px;
+	right: 10px;
+	display: block;
+	width: 38px;
+	height: 10px;
+}
+
+/* ── Buttons: hide Korean BMP content, inject English via ::after ── */
+#WinLogin .btn.signup {
+	font-size: 0;
+	color: transparent;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#WinLogin .btn.signup::after {
+	content: 'Request';
+	display: block;
+	width: 100%;
+	font-size: 9px;
+	font-weight: 700;
+	color: #1a3258;
+	text-align: center;
+	line-height: 20px;
+	letter-spacing: 0.2px;
+}
+
+#WinLogin .btn.connect {
+	font-size: 0;
+	color: transparent;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#WinLogin .btn.connect::after {
+	content: 'Login';
+	display: block;
+	width: 100%;
+	font-size: 9px;
+	font-weight: 700;
+	color: #1a3258;
+	text-align: center;
+	line-height: 20px;
+	letter-spacing: 0.2px;
+}
+
+#WinLogin .btn.exit {
+	font-size: 0;
+	color: transparent;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#WinLogin .btn.exit::after {
+	content: 'Exit';
+	display: block;
+	width: 100%;
+	font-size: 9px;
+	font-weight: 700;
+	color: #1a3258;
+	text-align: center;
+	line-height: 20px;
+	letter-spacing: 0.2px;
+}
+

@@ -179,3 +179,20 @@
 	align-items: center;
 	justify-content: center;
 }
+
+/* ragnarok-english-button-labels-v1 */
+
+#charcreate_v3 .button.make {
+	font-size: 0;
+	color: transparent;
+}
+#charcreate_v3 .button.make::after {
+	content: 'Create';
+	font-size: 12px;
+	font-weight: 700;
+	color: #173a62;
+	display: block;
+	width: 100%;
+	text-align: center;
+	line-height: 19px;
+}
