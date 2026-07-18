@@ -107,13 +107,14 @@
 			// Load optional Config.local.js for overrides (fails silently if not present)
 			(function () {
 				var script = document.createElement('script');
-				script.src = 'Config.local.js';
+				script.src = 'Config.local.js?v=%%MANIFEST_HASH%%';
 				script.onerror = function () {
 					console.log('Config.local.js not found, using defaults from Config.js');
 				};
 				document.head.appendChild(script);
 			})();
 		</script>
+		<script type="text/javascript" src="FluxLaunchBridge.js"></script>
 		<script type="text/javascript">
 			function deepMerge(target, source) {
 				for (var key in source) {
@@ -133,6 +134,10 @@
 				var baseConfig = deepMerge({}, window.ROConfigBase || {});
 				if (window.ROConfigLocal) {
 					baseConfig = deepMerge(baseConfig, window.ROConfigLocal);
+				}
+
+				if (window.fluxLaunchBridge && typeof window.fluxLaunchBridge.apply === 'function') {
+					baseConfig = window.fluxLaunchBridge.apply(baseConfig);
 				}
 
 				// Build ROConfig with dynamic values
@@ -157,35 +162,34 @@
 					} else {
 						callback(status, xhr.response);
 					}
-				};
-				xhr.send();
 			};
+			xhr.onerror = function () { callback('network_error', null); };
+			xhr.send();
+		};
 
-			window.addEventListener(
-				'load',
-				function () {
-					//Get latest GIT hash first then initialize
-					getJSON(
-						'https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master',
-						function (err, data) {
-							var gitHash = 'NO_INFO';
-							if (err !== null) {
-								console.warn('Error reading latest GIT hash.');
-							} else {
-								if (data && data.sha) {
-									gitHash = data.sha;
-									console.log('Latest GIT hash: ' + gitHash);
-								} else {
-									console.warn('No hash found in response');
-								}
-							}
-							initialize(gitHash);
-						}
-					);
-				},
-				false
-			);
-		</script>
+		window.addEventListener(
+			'load',
+			function () {
+				// ragnarok-githash-timeout: 3 s cap so the loading screen never hangs
+				var _githashDone = false;
+				function _onHash(err, data) {
+					if (_githashDone) return;
+					_githashDone = true;
+					var gitHash = 'NO_INFO';
+					if (!err && data && data.sha) {
+						gitHash = data.sha;
+					}
+					initialize(gitHash);
+				}
+				setTimeout(function () { _onHash('timeout', null); }, 3000);
+				getJSON(
+					'https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master',
+					_onHash
+				);
+			},
+			false
+		); /* data-ragnarok-githash-timeout */
+	</script>
 	</head>
 
 	<body>
