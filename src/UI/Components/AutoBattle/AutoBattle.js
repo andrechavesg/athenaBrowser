@@ -15,6 +15,7 @@ import Network    from 'Network/NetworkManager.js';
 import PACKET     from 'Network/PacketStructure.js';
 import PACKETVER  from 'Network/PacketVerManager.js';
 import DB         from 'DB/DBManager.js';
+import PathFinding from 'Utils/PathFinding.js';
 
 // ── module-level state ────────────────────────────────────────────────────────
 let _active      = false;

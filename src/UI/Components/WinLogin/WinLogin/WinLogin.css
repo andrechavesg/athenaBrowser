@@ -44,6 +44,7 @@
 	height: 20px;
 	bottom: 4px;
 	background-color: transparent;
+	padding: 0;
 }
 #WinLogin .btn.connect {
 	right: 50px;
@@ -136,61 +137,33 @@
 	height: 10px;
 }
 
-/* ── Buttons: hide Korean BMP content, inject English via ::after ── */
-#WinLogin .btn.signup {
-	font-size: 0;
-	color: transparent;
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-}
-#WinLogin .btn.signup::after {
-	content: 'Request';
-	display: block;
-	width: 100%;
-	font-size: 9px;
-	font-weight: 700;
-	color: #1a3258;
-	text-align: center;
-	line-height: 20px;
-	letter-spacing: 0.2px;
-}
-
-#WinLogin .btn.connect {
-	font-size: 0;
-	color: transparent;
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-}
-#WinLogin .btn.connect::after {
-	content: 'Login';
-	display: block;
-	width: 100%;
-	font-size: 9px;
-	font-weight: 700;
-	color: #1a3258;
-	text-align: center;
-	line-height: 20px;
-	letter-spacing: 0.2px;
-}
-
+/* ragnarok-html-buttons-v2 — native <button> text, no ::after hacks */
+#WinLogin .btn.signup,
+#WinLogin .btn.connect,
 #WinLogin .btn.exit {
-	font-size: 0;
-	color: transparent;
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-}
-#WinLogin .btn.exit::after {
-	content: 'Exit';
-	display: block;
-	width: 100%;
+	border: 1px solid #2a5080;
+	border-radius: 3px;
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	color: #1a3258;
 	font-size: 9px;
 	font-weight: 700;
-	color: #1a3258;
-	text-align: center;
-	line-height: 20px;
+	cursor: pointer;
 	letter-spacing: 0.2px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#WinLogin .btn.signup:hover,
+#WinLogin .btn.connect:hover,
+#WinLogin .btn.exit:hover {
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
+}
+
+#WinLogin .btn.signup:active,
+#WinLogin .btn.connect:active,
+#WinLogin .btn.exit:active {
+	background: linear-gradient(to bottom, #a8c0dc, #d0dff0);
 }
 

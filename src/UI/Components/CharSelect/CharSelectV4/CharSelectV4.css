@@ -201,25 +201,45 @@
 #CharSelectV4 .btn.finaldelete {
 	background-repeat: no-repeat;
 	background-color: transparent;
-	border: 0;
+	border: 1px solid #2a5080;
+	border-radius: 3px;
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	color: #1a3658;
+	font-size: 11px;
+	font-weight: bold;
+	cursor: pointer;
 	text-align: center;
 	line-height: 24px;
+	box-sizing: border-box;
+}
+
+#CharSelectV4 .btn.delete:hover,
+#CharSelectV4 .btn.canceldelete:hover,
+#CharSelectV4 .btn.finaldelete:hover {
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
 }
 
 #CharSelectV4 .btn.ok {
 	position: absolute;
 	width: 165px;
 	height: 110px;
-	color: white;
-	padding-top: 20px;
-	background-repeat: no-repeat;
-	background-color: transparent;
-	border: 0;
+	color: #1a3658;
+	font-size: 16px;
+	font-weight: bold;
+	cursor: pointer;
+	border: 2px solid #2a5080;
+	border-radius: 5px;
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
 	text-align: center;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 #CharSelectV4 .btn.ok:hover {
-	text-shadow: #000 1px 1px;
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
+	text-shadow: none;
 }
 
 #CharSelectV4 .ok,

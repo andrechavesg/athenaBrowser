@@ -180,19 +180,25 @@
 	justify-content: center;
 }
 
-/* ragnarok-english-button-labels-v1 */
+/* ragnarok-html-buttons-v2 — native <button> element, no ::after hacks */
 
-#charcreate_v3 .button.make {
-	font-size: 0;
-	color: transparent;
-}
-#charcreate_v3 .button.make::after {
-	content: 'Create';
+#charcreate_v3 button.btn-english.make {
+	border: 1px solid #2a5080;
+	border-radius: 3px;
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	color: #1a3658;
 	font-size: 12px;
-	font-weight: 700;
-	color: #173a62;
-	display: block;
-	width: 100%;
-	text-align: center;
-	line-height: 19px;
+	font-weight: bold;
+	cursor: pointer;
+	padding: 0;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+#charcreate_v3 button.btn-english.make:hover {
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
+}
+#charcreate_v3 button.btn-english.make:active {
+	background: linear-gradient(to bottom, #a8c0dc, #d0dff0);
 }

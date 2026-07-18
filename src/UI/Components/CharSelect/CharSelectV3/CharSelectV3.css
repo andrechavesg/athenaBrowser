@@ -223,15 +223,25 @@
 	left: 389px;
 }
 
-/* ragnarok-english-button-labels-v1 */
+/* ragnarok-html-buttons-v2 — native <button> elements, no ::after hacks */
 
-#CharSelectV3 .btn {
-	font-size: 0;
-	color: transparent;
+#CharSelectV3 button.btn {
+	border: 1px solid #2a5080;
+	border-radius: 3px;
+	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	color: #1a3658;
+	font-size: 11px;
+	font-weight: bold;
+	cursor: pointer;
+	padding: 0 2px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
-#CharSelectV3 .delete::after    { content: 'Delete';     font-size: 12px; color: #1a3658; }
-#CharSelectV3 .canceldelete::after { content: 'Undo Del'; font-size: 12px; color: #1a3658; }
-#CharSelectV3 .finaldelete::after { content: 'Confirm';  font-size: 12px; color: #1a3658; }
-#CharSelectV3 .ok::after        { content: 'Enter';      font-size: 12px; color: #1a3658; }
-#CharSelectV3 .make::after      { content: 'Create';     font-size: 12px; color: #1a3658; }
-#CharSelectV3 .cancel::after    { content: 'Cancel';     font-size: 12px; color: #1a3658; }
+#CharSelectV3 button.btn:hover {
+	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
+}
+#CharSelectV3 button.btn:active {
+	background: linear-gradient(to bottom, #a8c0dc, #d0dff0);
+}
