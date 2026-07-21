@@ -173,8 +173,10 @@ addEventListener(
 		const englishMapIndex = {};
 		const loadEnglishMapIndex = async () => {
 			try {
-				const remoteClient = (window.ROConfig && window.ROConfig.remoteClient) ||
-					(window.ROConfigLocal && window.ROConfigLocal.remoteClient) || '';
+				const remoteClient =
+					(window.ROConfig && window.ROConfig.remoteClient) ||
+					(window.ROConfigLocal && window.ROConfigLocal.remoteClient) ||
+					'';
 				if (!remoteClient) return;
 				const base = remoteClient.replace(/\/+$/, '');
 				const resp = await fetch(`${base}/data/mapnametable.txt`);
@@ -183,7 +185,10 @@ addEventListener(
 				text.split(/\r?\n/).forEach(line => {
 					const parts = line.split('#');
 					if (parts.length >= 2) {
-						const mapId = parts[0].trim().replace(/\.rsw$/i, '').toLowerCase();
+						const mapId = parts[0]
+							.trim()
+							.replace(/\.rsw$/i, '')
+							.toLowerCase();
 						const engName = parts[1].trim();
 						if (mapId && engName) {
 							englishMapIndex[mapId] = engName;
@@ -205,15 +210,20 @@ addEventListener(
 					return;
 				}
 
-				const getEnglishMapName = (mapId) => {
-					const key = String(mapId || '').toLowerCase().replace(/\.rsw$/i, '').replace(/\.gat$/i, '');
+				const getEnglishMapName = mapId => {
+					const key = String(mapId || '')
+						.toLowerCase()
+						.replace(/\.rsw$/i, '')
+						.replace(/\.gat$/i, '');
 					return englishMapIndex[key] || null;
 				};
 
 				const originalSearchNavigation = DB.searchNavigation.bind(DB);
 				DB.searchNavigation = function patchedSearchNavigation(query, type) {
 					const results = originalSearchNavigation(query, type);
-					const normalizedQuery = String(query || '').trim().toLowerCase();
+					const normalizedQuery = String(query || '')
+						.trim()
+						.toLowerCase();
 					if (!normalizedQuery || normalizedQuery.length < 2) {
 						return results;
 					}
@@ -245,44 +255,72 @@ addEventListener(
 							if (seen.has(key)) continue;
 							seen.add(key);
 							// Try to get coordinates from navi link table
-							let x = 150, y = 150;
+							let x = 150,
+								y = 150;
 							const naviLinks = Array.isArray(DB.getNaviLinkTable && DB.getNaviLinkTable())
-								? DB.getNaviLinkTable() : [];
+								? DB.getNaviLinkTable()
+								: [];
 							for (const link of naviLinks) {
 								if (!Array.isArray(link) || link.length < 11) continue;
-								const lm = String(link[0] || '').toLowerCase().replace(/\.gat$/i, '');
-								if (lm === mapId) { x = Math.floor(Number(link[6]) || 150); y = Math.floor(Number(link[7]) || 150); break; }
-								const lm2 = String(link[8] || '').toLowerCase().replace(/\.gat$/i, '');
-								if (lm2 === mapId) { x = Math.floor(Number(link[9]) || 150); y = Math.floor(Number(link[10]) || 150); break; }
+								const lm = String(link[0] || '')
+									.toLowerCase()
+									.replace(/\.gat$/i, '');
+								if (lm === mapId) {
+									x = Math.floor(Number(link[6]) || 150);
+									y = Math.floor(Number(link[7]) || 150);
+									break;
+								}
+								const lm2 = String(link[8] || '')
+									.toLowerCase()
+									.replace(/\.gat$/i, '');
+								if (lm2 === mapId) {
+									x = Math.floor(Number(link[9]) || 150);
+									y = Math.floor(Number(link[10]) || 150);
+									break;
+								}
 							}
 							results.push({ type: 'MAP', id: mapId, name: engName, mapName: mapId, x, y });
 						}
 
 						// Also search NaviMapTable map IDs that weren't in englishMapIndex
 						const naviLinks = Array.isArray(DB.getNaviLinkTable && DB.getNaviLinkTable())
-							? DB.getNaviLinkTable() : [];
+							? DB.getNaviLinkTable()
+							: [];
 						const mapHints = new Map();
 						for (const link of naviLinks) {
 							if (!Array.isArray(link) || link.length < 11) continue;
 							const addHint = (rawMap, rawX, rawY) => {
-								const mapName = String(rawMap || '').toLowerCase().replace(/\.gat$/i, '').trim();
+								const mapName = String(rawMap || '')
+									.toLowerCase()
+									.replace(/\.gat$/i, '')
+									.trim();
 								if (!mapName || mapHints.has(mapName)) return;
-								mapHints.set(mapName, { x: Math.floor(Number(rawX) || 150), y: Math.floor(Number(rawY) || 150) });
+								mapHints.set(mapName, {
+									x: Math.floor(Number(rawX) || 150),
+									y: Math.floor(Number(rawY) || 150)
+								});
 							};
 							addHint(link[0], link[6], link[7]);
 							addHint(link[8], link[9], link[10]);
 						}
 						for (const [mapName, coords] of mapHints.entries()) {
 							const engName = getEnglishMapName(mapName);
-							const displayName = engName || String(
-								(DB.getMapName && DB.getMapName(`${mapName}.rsw`, mapName)) || mapName
-							).trim();
+							const displayName =
+								engName ||
+								String((DB.getMapName && DB.getMapName(`${mapName}.rsw`, mapName)) || mapName).trim();
 							const displayLower = displayName.toLowerCase();
 							if (!displayLower.includes(normalizedQuery) && !mapName.includes(normalizedQuery)) continue;
 							const key = `MAP:${mapName}:${displayLower}`;
 							if (seen.has(key)) continue;
 							seen.add(key);
-							results.push({ type: 'MAP', id: mapName, name: displayName, mapName, x: coords.x, y: coords.y });
+							results.push({
+								type: 'MAP',
+								id: mapName,
+								name: displayName,
+								mapName,
+								x: coords.x,
+								y: coords.y
+							});
 						}
 					}
 

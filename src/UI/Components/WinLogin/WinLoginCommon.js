@@ -115,9 +115,7 @@ export function createWinLogin({ name, htmlText, cssText }) {
 
 	function exit() {
 		const exchangeUrl = Configs.get('fluxLaunchExchangeUrl');
-		const fluxBase = exchangeUrl
-			? exchangeUrl.replace(/\?.*/, '')
-			: 'http://127.0.0.1:8081';
+		const fluxBase = exchangeUrl ? exchangeUrl.replace(/\?.*/, '') : 'http://127.0.0.1:8081';
 		window.location.href = fluxBase;
 		return false;
 	}

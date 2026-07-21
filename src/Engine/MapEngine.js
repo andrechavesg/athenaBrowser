@@ -718,7 +718,7 @@ function onMapChange(pkt) {
 		JoystickUI.append();
 		Navigation.append();
 		AutoBattle(); // plugin init
-		AutoWalk();   // plugin init
+		AutoWalk(); // plugin init
 		KeyToMove();
 		Roulette.append();
 		if (Configs.get('enableAchievements') && PACKETVER.value >= 20150513) {

@@ -28,12 +28,12 @@ function _popupPosition() {
 
 /** Map of internal button names → English display labels */
 const _BTN_LABELS = {
-	ok:     'OK',
+	ok: 'OK',
 	cancel: 'Cancel',
-	del:    'Delete',
-	close:  'Close',
-	yes:    'Yes',
-	no:     'No',
+	del: 'Delete',
+	close: 'Close',
+	yes: 'Yes',
+	no: 'No'
 };
 
 /**

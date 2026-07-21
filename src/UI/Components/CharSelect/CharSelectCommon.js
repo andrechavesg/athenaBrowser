@@ -1345,7 +1345,7 @@ export function createCharSelect(config) {
 		for (let i = start; i < loopMax; ++i) {
 			if (charCanvases[i]) {
 				// ragnarok-charselect-v4-empty-slot
-			charCanvases[i].querySelector('.name').innerHTML = _slots[i] ? _slots[i].name : `Empty Slot ${i + 1}`;
+				charCanvases[i].querySelector('.name').innerHTML = _slots[i] ? _slots[i].name : `Empty Slot ${i + 1}`;
 			}
 			if (!_slots[i]) {
 				if (jobIcons[i]) {

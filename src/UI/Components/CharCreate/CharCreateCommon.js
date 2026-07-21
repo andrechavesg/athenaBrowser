@@ -542,9 +542,15 @@ export function createCharCreate(config) {
 		if (gridHairstyle) {
 			root.querySelector('.title').textContent = resolveMsg(3356, 'Create Character');
 			root.querySelector('.human_title').textContent = resolveMsg(3017, 'Novice');
-			root.querySelector('.human_desc').textContent = resolveMsg(3021, 'Balanced Midgard adventurer. Suitable for all new players.');
+			root.querySelector('.human_desc').textContent = resolveMsg(
+				3021,
+				'Balanced Midgard adventurer. Suitable for all new players.'
+			);
 			root.querySelector('.doram_title').textContent = resolveMsg(3019, 'Doram');
-			root.querySelector('.doram_desc').textContent = resolveMsg(3022, 'Lasagna native focused on spirit-based combat.');
+			root.querySelector('.doram_desc').textContent = resolveMsg(
+				3022,
+				'Lasagna native focused on spirit-based combat.'
+			);
 			root.querySelector('.hair_style_title').textContent = resolveMsg(3347, 'Hair Style');
 			root.querySelector('.hair_color_title').textContent = resolveMsg(3348, 'Hair Color');
 			root.querySelector('.return').textContent = resolveMsg(3352, 'Back');

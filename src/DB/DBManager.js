@@ -282,7 +282,6 @@ function __ragnarokNavigationArrayCompatibility(target, payload) {
 	}
 }
 
-
 /**
  * DB NameSpace
  */
@@ -3536,7 +3535,7 @@ class DB {
 	 *
 	 * @returns {Array} The NaviLinkTable
 	 */
-		/**
+	/**
 	 * Get the NaviMobTable (ragnarok-getNaviMobTable-v1)
 	 * @returns {Array} Each entry: ["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info]
 	 */

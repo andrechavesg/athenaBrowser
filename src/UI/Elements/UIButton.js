@@ -17,17 +17,17 @@ import Targa from 'Loaders/Targa.js';
  * Keys are filename stems (without path prefix, case-insensitive).
  */
 const KOREAN_BMP_LABELS = {
-	'btn_ok':     'OK',
-	'btn_ok_dis': 'OK',
-	'btn_cancel': 'Cancel',
-	'btn_del':    'Delete',
-	'btn_close':  'Close',
-	'btn_make':   'Create',
-	'btn_next':   'Next',
-	'btn_sell':   'Sell',
-	'btn_buy':    'Buy',
-	'btn_use':    'Use',
-	'btn_back':   'Back',
+	btn_ok: 'OK',
+	btn_ok_dis: 'OK',
+	btn_cancel: 'Cancel',
+	btn_del: 'Delete',
+	btn_close: 'Close',
+	btn_make: 'Create',
+	btn_next: 'Next',
+	btn_sell: 'Sell',
+	btn_buy: 'Buy',
+	btn_use: 'Use',
+	btn_back: 'Back'
 };
 
 /**
@@ -79,7 +79,10 @@ function _injectStyle() {
  */
 function _koreanBmpLabel(bg) {
 	if (!bg) return null;
-	const stem = bg.replace(/.*[\\/]/, '').replace(/\.bmp$/i, '').toLowerCase();
+	const stem = bg
+		.replace(/.*[\\/]/, '')
+		.replace(/\.bmp$/i, '')
+		.toLowerCase();
 	return KOREAN_BMP_LABELS[stem] || null;
 }
 
@@ -100,8 +103,8 @@ class UIButton extends HTMLElement {
 				this.textContent = label;
 			}
 			this.addEventListener('mousedown', () => this.classList.add('is-down'));
-			this.addEventListener('mouseup',   () => this.classList.remove('is-down'));
-			this.addEventListener('mouseout',  () => this.classList.remove('is-down'));
+			this.addEventListener('mouseup', () => this.classList.remove('is-down'));
+			this.addEventListener('mouseout', () => this.classList.remove('is-down'));
 			this.addEventListener(
 				'click',
 				e => {
@@ -226,4 +229,3 @@ class UIButton extends HTMLElement {
 
 customElements.define('ui-button', UIButton);
 export default UIButton;
-

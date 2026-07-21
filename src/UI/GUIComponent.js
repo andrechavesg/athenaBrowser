@@ -949,20 +949,23 @@ class GUIComponent {
 
 		// Korean BMP intercept — replace with a native styled button
 		const _KOREAN_BMP_LABELS = {
-			'btn_ok':     'OK',
-			'btn_ok_dis': 'OK',
-			'btn_cancel': 'Cancel',
-			'btn_del':    'Delete',
-			'btn_close':  'Close',
-			'btn_make':   'Create',
-			'btn_next':   'Next',
-			'btn_sell':   'Sell',
-			'btn_buy':    'Buy',
-			'btn_use':    'Use',
-			'btn_back':   'Back',
+			btn_ok: 'OK',
+			btn_ok_dis: 'OK',
+			btn_cancel: 'Cancel',
+			btn_del: 'Delete',
+			btn_close: 'Close',
+			btn_make: 'Create',
+			btn_next: 'Next',
+			btn_sell: 'Sell',
+			btn_buy: 'Buy',
+			btn_use: 'Use',
+			btn_back: 'Back'
 		};
 		if (background) {
-			const stem = background.replace(/.*[\\/]/, '').replace(/\.bmp$/i, '').toLowerCase();
+			const stem = background
+				.replace(/.*[\\/]/, '')
+				.replace(/\.bmp$/i, '')
+				.toLowerCase();
 			const label = _KOREAN_BMP_LABELS[stem];
 			if (label !== undefined) {
 				if (!node.textContent.trim()) node.textContent = label;
@@ -978,7 +981,7 @@ class GUIComponent {
 					display: 'inline-flex',
 					alignItems: 'center',
 					justifyContent: 'center',
-					backgroundImage: 'none',
+					backgroundImage: 'none'
 				});
 				node.addEventListener('mouseover', () => {
 					node.style.background = 'linear-gradient(to bottom, #e0eeff, #c0d8f0)';

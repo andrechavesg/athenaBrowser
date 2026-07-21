@@ -1,5 +1,4 @@
-
-const __ragnarokAssetManifestHashV2 = "";
+const __ragnarokAssetManifestHashV2 = '';
 function __ragnarokAppendManifestHashV2(filename) {
 	if (!__ragnarokAssetManifestHashV2 || /[?&]mh=/.test(filename)) {
 		return filename;

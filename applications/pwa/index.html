@@ -162,34 +162,35 @@
 					} else {
 						callback(status, xhr.response);
 					}
+				};
+				xhr.onerror = function () {
+					callback('network_error', null);
+				};
+				xhr.send();
 			};
-			xhr.onerror = function () { callback('network_error', null); };
-			xhr.send();
-		};
 
-		window.addEventListener(
-			'load',
-			function () {
-				// ragnarok-githash-timeout: 3 s cap so the loading screen never hangs
-				var _githashDone = false;
-				function _onHash(err, data) {
-					if (_githashDone) return;
-					_githashDone = true;
-					var gitHash = 'NO_INFO';
-					if (!err && data && data.sha) {
-						gitHash = data.sha;
+			window.addEventListener(
+				'load',
+				function () {
+					// ragnarok-githash-timeout: 3 s cap so the loading screen never hangs
+					var _githashDone = false;
+					function _onHash(err, data) {
+						if (_githashDone) return;
+						_githashDone = true;
+						var gitHash = 'NO_INFO';
+						if (!err && data && data.sha) {
+							gitHash = data.sha;
+						}
+						initialize(gitHash);
 					}
-					initialize(gitHash);
-				}
-				setTimeout(function () { _onHash('timeout', null); }, 3000);
-				getJSON(
-					'https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master',
-					_onHash
-				);
-			},
-			false
-		); /* data-ragnarok-githash-timeout */
-	</script>
+					setTimeout(function () {
+						_onHash('timeout', null);
+					}, 3000);
+					getJSON('https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master', _onHash);
+				},
+				false
+			); /* data-ragnarok-githash-timeout */
+		</script>
 	</head>
 
 	<body>
