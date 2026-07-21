@@ -18613,6 +18613,15 @@ var FileSystem = class FileSystem {
 *
 * @author Vincent Thibault
 */
+function __ragnarokAppendManifestHashV2(filename) {
+	return filename;
+}
+function __ragnarokCriticalUiCacheBypassV2(filename) {
+	const normalized = filename.replace(/\\/g, "/").toLowerCase();
+	const isMakeCharAsset = /\/make_character\//.test(normalized);
+	const isSelectCharVer3Asset = /\/select_character_ver3\/(img_info|img_slot_select)/.test(normalized);
+	return isMakeCharAsset || isSelectCharVer3Asset;
+}
 var fs = null;
 if (typeof process !== "undefined" && process.versions?.electron) try {
 	fs = Function("return require")()("fs");
@@ -18736,6 +18745,10 @@ var FileManager = class FileManager {
 	*/
 	static get(filename, callback) {
 		filename = filename.replace(/^\s+|\s+$/g, "");
+		if (__ragnarokCriticalUiCacheBypassV2(filename)) {
+			FileManager.getHTTP(__ragnarokAppendManifestHashV2(filename), callback);
+			return;
+		}
 		if (fs && fs.existsSync(filename)) {
 			callback(fs.readFileSync(filename));
 			return;

@@ -32,11 +32,7 @@
 			"description": "roBrowser Progressive Web App."
 		}
 	],
-	"protocol_handlers": [
-		{
-			"protocol": "http",
-			"url": "./"
-		}
-	],
-	"display_override": ["window-controls-overlay"]
+	"display_override": [
+		"window-controls-overlay"
+	]
 }
