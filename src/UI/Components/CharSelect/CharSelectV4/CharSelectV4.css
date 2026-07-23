@@ -23,6 +23,7 @@
 	border-radius: 5px;
 	padding-top: 20px;
 	padding-left: 5px;
+	zoom: min(1, calc((100vh - 32px) / 640));
 }
 
 /** Box **/
@@ -30,8 +31,8 @@
 	flex: 1;
 	max-width: 800px;
 	min-width: 157px;
-	height: 595px;
-	max-height: 80vh;
+	height: min(585px, calc(100vh - 48px));
+	max-height: min(585px, calc(100vh - 48px));
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
@@ -58,6 +59,9 @@
 	text-align: center;
 	font-weight: bold;
 	color: #15154a;
+}
+#CharSelectV4 .char_canvas .name:empty {
+	display: none;
 }
 
 #CharSelectV4 .char_canvas .job_icon {
@@ -95,6 +99,7 @@
 
 /** Page info **/
 #CharSelectV4 .pageinfo {
+	display: none;
 	position: absolute;
 	left: 275px;
 	top: 185px;
@@ -107,13 +112,17 @@
 
 /** Characters infos **/
 #CharSelectV4 .charinfo {
-	height: 585px;
-	max-height: 80vh;
+	height: min(585px, calc(100vh - 48px));
+	max-height: min(585px, calc(100vh - 48px));
 	width: 185px;
+	background-color: #ffffff;
 	background-repeat: no-repeat;
-	margin-top: 10px;
+	background-size: 185px 585px;
+	background-position: top left;
+	margin-top: 0;
 	margin-left: 10px;
 	position: relative;
+	overflow: hidden;
 }
 #CharSelectV4 .charinfo div {
 	position: absolute;
@@ -178,74 +187,78 @@
 }
 
 /** Buttons **/
-#CharSelectV4 .btn.delete {
+/* Play sits at the bottom of the upper white info section; Delete stays in the lower strip. */
+#CharSelectV4 .btn.ok {
 	position: absolute;
-	width: 131px;
-	height: 24px;
+	left: 12px;
+	right: 12px;
+	width: auto;
+	height: 40px;
+	top: auto;
+	bottom: 88px;
+	color: #ffffff;
+	font-size: 14px;
+	font-weight: bold;
+	cursor: pointer;
+	border: 1px solid #1a4a8a;
+	border-radius: 3px;
+	background: linear-gradient(to bottom, #4a8fd4, #2a6cb0);
+	box-shadow: 0 2px 4px rgba(26, 74, 138, 0.35);
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+	text-align: center;
+	line-height: 38px;
+	box-sizing: border-box;
+	padding: 0;
+	z-index: 3;
 }
 
-#CharSelectV4 .btn.canceldelete {
-	position: absolute;
-	width: 131px;
-	height: 24px;
-}
-
-#CharSelectV4 .btn.finaldelete {
-	position: absolute;
-	width: 131px;
-	height: 24px;
+#CharSelectV4 .btn.ok:hover {
+	background: linear-gradient(to bottom, #5aa0e4, #3478c0);
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 #CharSelectV4 .btn.delete,
 #CharSelectV4 .btn.canceldelete,
 #CharSelectV4 .btn.finaldelete {
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	width: auto;
+	height: 32px;
+	top: auto;
+	bottom: 14px;
 	background-repeat: no-repeat;
-	background-color: transparent;
-	border: 1px solid #2a5080;
-	border-radius: 3px;
-	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
+	border: 1px solid #6a8ab0;
+	border-radius: 0;
+	background: linear-gradient(to bottom, #e8f0f8, #c8d8ec);
 	color: #1a3658;
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: bold;
 	cursor: pointer;
 	text-align: center;
-	line-height: 24px;
+	line-height: 30px;
 	box-sizing: border-box;
+	padding: 0;
+	z-index: 3;
+}
+
+#CharSelectV4 .btn.finaldelete {
+	bottom: 54px;
 }
 
 #CharSelectV4 .btn.delete:hover,
 #CharSelectV4 .btn.canceldelete:hover,
 #CharSelectV4 .btn.finaldelete:hover {
-	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
-}
-
-#CharSelectV4 .btn.ok {
-	position: absolute;
-	width: 165px;
-	height: 110px;
-	color: #1a3658;
-	font-size: 16px;
-	font-weight: bold;
-	cursor: pointer;
-	border: 2px solid #2a5080;
-	border-radius: 5px;
-	background: linear-gradient(to bottom, #d0dff0, #a8c0dc);
-	text-align: center;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-#CharSelectV4 .btn.ok:hover {
-	background: linear-gradient(to bottom, #e0eeff, #c0d8f0);
-	text-shadow: none;
+	background: linear-gradient(to bottom, #f2f7fc, #d4e2f2);
 }
 
 #CharSelectV4 .ok,
 #CharSelectV4 .make {
-	right: 15px;
-	top: 380px;
+	left: 12px;
+	right: 12px;
+	width: auto;
+	top: auto;
+	bottom: 88px;
 }
 #CharSelectV4 .cancel {
 	position: absolute;
@@ -254,19 +267,27 @@
 	width: 17px;
 	height: 18px;
 }
-#CharSelectV4 .delete {
-	right: 33px;
-	top: 300px;
-}
-
+#CharSelectV4 .delete,
 #CharSelectV4 .canceldelete {
-	right: 33px;
-	top: 300px;
+	left: 12px;
+	right: 12px;
+	width: auto;
+	top: auto;
+	bottom: 14px;
 }
 
 #CharSelectV4 .finaldelete {
-	right: 33px;
-	top: 330px;
+	left: 12px;
+	right: 12px;
+	width: auto;
+	top: auto;
+	bottom: 54px;
+}
+
+/* When Confirm Delete is visible, lift Play above the three-button stack */
+#CharSelectV4 .charinfo:has(.btn.finaldelete[style*='display: block']) .btn.ok,
+#CharSelectV4 .charinfo:has(.btn.finaldelete[style*='display: block']) .ok {
+	bottom: 128px;
 }
 
 #CharSelectV4 .timedelete {

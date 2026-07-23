@@ -122,7 +122,14 @@ export function createCharSelect(config) {
 			// Bind buttons
 			root.querySelector('.ok').addEventListener('click', connect);
 			root.querySelector('.cancel').addEventListener('click', cancel);
-			root.querySelector('.delete').addEventListener('click', reserve);
+			// Same control: Delete Character on occupied slots, Create New on empty slots
+			root.querySelector('.delete').addEventListener('click', () => {
+				if (_slots[_index]) {
+					reserve();
+				} else {
+					create();
+				}
+			});
 			root.querySelector('.canceldelete').addEventListener('click', removedelete);
 			root.querySelector('.finaldelete').addEventListener('click', suppress);
 
@@ -897,7 +904,9 @@ export function createCharSelect(config) {
 				// Adjust the buttons
 				root.querySelector('.canceldelete').style.display = 'none';
 				root.querySelector('.finaldelete').style.display = 'none';
-				root.querySelector('.delete').style.display = 'block';
+				const deleteBtn = root.querySelector('.delete');
+				deleteBtn.textContent = 'Delete Character';
+				deleteBtn.style.display = 'block';
 
 				// Send request to the server
 				Component.onCancelDeleteRequest(_slots[_index].GID);
@@ -1264,7 +1273,9 @@ export function createCharSelect(config) {
 			charinfo.querySelectorAll('div').forEach(div => {
 				div.textContent = '';
 			});
-			root.querySelector('.delete').style.display = 'none';
+			const deleteBtn = root.querySelector('.delete');
+			deleteBtn.textContent = 'Create New';
+			deleteBtn.style.display = 'block';
 			root.querySelector('.canceldelete').style.display = 'none';
 			root.querySelector('.finaldelete').style.display = 'none';
 			root.querySelector('.ok').style.display = 'none';
@@ -1285,15 +1296,17 @@ export function createCharSelect(config) {
 		}
 
 		const info = _slots[_index];
+		const deleteBtn = root.querySelector('.delete');
+		deleteBtn.textContent = 'Delete Character';
 		// Bind new value
 		if (info.DeleteDate) {
-			root.querySelector('.delete').style.display = 'none';
+			deleteBtn.style.display = 'none';
 			root.querySelector('.canceldelete').style.display = 'block';
 			root.querySelector('.finaldelete').style.display = 'block';
 		} else {
 			root.querySelector('.canceldelete').style.display = 'none';
 			root.querySelector('.finaldelete').style.display = 'none';
-			root.querySelector('.delete').style.display = 'block';
+			deleteBtn.style.display = 'block';
 		}
 
 		root.querySelector('.ok').style.display = 'block';
@@ -1344,8 +1357,8 @@ export function createCharSelect(config) {
 
 		for (let i = start; i < loopMax; ++i) {
 			if (charCanvases[i]) {
-				// ragnarok-charselect-v4-empty-slot
-				charCanvases[i].querySelector('.name').innerHTML = _slots[i] ? _slots[i].name : `Empty Slot ${i + 1}`;
+				// Hide labels under empty slots; keep character names on occupied ones
+				charCanvases[i].querySelector('.name').textContent = _slots[i] ? _slots[i].name : '';
 			}
 			if (!_slots[i]) {
 				if (jobIcons[i]) {
