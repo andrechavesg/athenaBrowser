@@ -229,9 +229,9 @@
 		enableAchievements: false,
 
 		/**
-		 * @type {boolean} Enable Bank UI
+		 * @type {boolean} Enable Bank UI (Ctrl+B). Requires PACKETVER >= 20130724.
 		 */
-		enableBank: false,
+		enableBank: true,
 
 		/**
 		 * @type {boolean} Enable Damage Suffix

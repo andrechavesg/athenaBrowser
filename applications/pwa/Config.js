@@ -46,7 +46,8 @@ window.ROConfigBase = {
 	clientVersionMode: 'PacketVer',
 	disableConsole: false,
 	enableAchievements: false,
-	enableBank: false,
+	// Private-stack default: Bank UI + Ctrl+B (PACKETVER >= 20130724).
+	enableBank: true,
 	enableCashShop: false,
 	enableCheckAttendance: false,
 	enableDmgSuffix: false,
