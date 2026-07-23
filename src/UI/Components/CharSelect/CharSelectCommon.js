@@ -1253,11 +1253,17 @@ export function createCharSelect(config) {
 		const charinfo = root.querySelector('.charinfo');
 
 		const prevIndex = _index;
-		let entity = _slots[_index];
+		const prevOccupied = !!_slots[_index];
 		shouldRunBackgroundChange = false;
 
-		if (entity) {
-			Client.loadFile(`${DB.INTERFACE_PATH}select_character_ver3/img_slot_normal.bmp`, dataURI => {
+		const slotIndex = (_index = index > _maxSlots ? _maxSlots : index < 0 ? 0 : index);
+
+		// Restore previous slot frame (occupied and empty use different normals)
+		if (prevIndex !== slotIndex) {
+			const prevNormal = prevOccupied
+				? `${DB.INTERFACE_PATH}select_character_ver3/img_slot_normal.bmp`
+				: `${DB.INTERFACE_PATH}select_character_ver3/img_slot2_normal.bmp`;
+			Client.loadFile(prevNormal, dataURI => {
 				const prevSlot = root.querySelector(`#slot${prevIndex}`);
 				if (prevSlot) {
 					prevSlot.style.backgroundImage = `url(${dataURI})`;
@@ -1265,10 +1271,13 @@ export function createCharSelect(config) {
 			});
 		}
 
-		const slotIndex = (_index = index > _maxSlots ? _maxSlots : index < 0 ? 0 : index);
+		// Same animated select border for occupied and empty slots
+		_curindex = slotIndex;
+		shouldRunBackgroundChange = true;
+		changeBackgroundEverySecond();
 
 		// Not found, just clean up.
-		entity = _slots[_index];
+		const entity = _slots[_index];
 		if (!entity) {
 			charinfo.querySelectorAll('div').forEach(div => {
 				div.textContent = '';
@@ -1286,13 +1295,6 @@ export function createCharSelect(config) {
 				countdown.style.display = 'none';
 			}
 			return;
-		} else {
-			_curindex = slotIndex;
-			shouldRunBackgroundChange = true;
-		}
-
-		if (shouldRunBackgroundChange === true) {
-			changeBackgroundEverySecond();
 		}
 
 		const info = _slots[_index];
