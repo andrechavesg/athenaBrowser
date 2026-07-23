@@ -13,6 +13,7 @@ import glMatrix  from 'Vendors/gl-matrix.js';
 import Session   from 'Engine/SessionStorage.js';
 import Network   from 'Network/NetworkManager.js';
 import PACKET    from 'Network/PacketStructure.js';
+import PACKETVER from 'Network/PacketVerManager.js';
 import Camera    from 'Renderer/Camera.js';
 import KEYS      from 'Controls/KeyEventHandler.js';
 
@@ -75,7 +76,15 @@ function processKeysDown(){
 		if( targetPos[0] !== newPos[0] || targetPos[1] !== newPos[1] ){
 			targetPos[0] = newPos[0];
 			targetPos[1] = newPos[1];
-			let pkt     = new PACKET.CZ.REQUEST_MOVE();
+			// PACKETVER >= 20180307 expects CZ.REQUEST_MOVE2 (0x035f).
+			// Old CZ.REQUEST_MOVE resolves to shuffled 0x0877 on modern
+			// packet tables and the map-server disconnects the session.
+			let pkt;
+			if (PACKETVER.value >= 20180307) {
+				pkt = new PACKET.CZ.REQUEST_MOVE2();
+			} else {
+				pkt = new PACKET.CZ.REQUEST_MOVE();
+			}
 			pkt.dest[0] = newPos[0];
 			pkt.dest[1] = newPos[1];
 			Network.sendPacket(pkt);
