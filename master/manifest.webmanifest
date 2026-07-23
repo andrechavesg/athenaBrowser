@@ -32,7 +32,5 @@
 			"description": "roBrowser Progressive Web App."
 		}
 	],
-	"display_override": [
-		"window-controls-overlay"
-	]
+	"display_override": ["window-controls-overlay"]
 }
