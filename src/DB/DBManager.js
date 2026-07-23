@@ -4109,7 +4109,9 @@ function arrayBufferToBase64(buffer) {
 function getSystemAliases(basePath) {
 	basePath = basePath.replace(/\.(lub|lua)$/i, ''); // Prevents extension been passed
 
-	const suffixes = ['', '_true', '_sak', '_Sakray']; // Priority order
+	// Include both `_true` and `_True` — Linux asset servers are case-sensitive
+	// and iRO packages commonly ship OngoingQuestInfoList_True.lub.
+	const suffixes = ['', '_True', '_true', '_sak', '_Sakray']; // Priority order
 	const extensions = ['.lub', '.lua'];
 	const fileList = [];
 
@@ -4919,6 +4921,7 @@ function loadQuestInfo(filename, callback, onEnd) {
 	loadPromise
 		.then(async file => {
 			console.log('Loading file "' + filename + '"...');
+			let loadedCount = 0;
 
 			try {
 				// check if file is ArrayBuffer and convert to Uint8Array if necessary
@@ -4955,6 +4958,7 @@ function loadQuestInfo(filename, callback, onEnd) {
 						RewardEXP: RewardEXP,
 						RewardJEXP: RewardJEXP
 					};
+					loadedCount++;
 
 					return 1;
 				};
@@ -4982,6 +4986,12 @@ function loadQuestInfo(filename, callback, onEnd) {
 					-- Check if QuestInfoList is a table and not nil
 					if type(QuestInfoList) ~= "table" or QuestInfoList == nil then
 						return false, "Error: Quest table is nil or not a table"
+					end
+
+					-- Empty stubs must fail so tryLoadLuaAliases can fall through to
+					-- OngoingQuestInfoList_True.lub (real English quest DB).
+					if next(QuestInfoList) == nil then
+						return false, "Error: Quest table is empty"
 					end
 
 					for QuestID, DESC in pairs(QuestInfoList) do
@@ -5031,15 +5041,21 @@ function loadQuestInfo(filename, callback, onEnd) {
 					return true, "good"
 				end
 
-				main_quest()
+				local ok, msg = main_quest()
+				if not ok then
+					error(msg or "quest load failed")
+				end
 					`);
 			} catch (error) {
 				console.error('[loadQuestInfo] Error: ', error);
+				loadedCount = 0;
 			} finally {
 				// release file from memmory
 				lua.unmountFile(filename);
-				// call onEnd
-				onEnd(true);
+				// Empty stub files must report failure so alias fallback continues.
+				if (typeof onEnd === 'function') {
+					onEnd(loadedCount > 0);
+				}
 			}
 		})
 		.catch(error => {

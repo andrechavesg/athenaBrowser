@@ -81,10 +81,8 @@ Quest.init = function init() {
 		item.addEventListener('click', e => onClickMenu(e));
 	});
 
-	const activeList = root.querySelector('#active-quest-list');
-	if (activeList) {
-		activeList.style.display = '';
-	}
+	setQuestListVisible('active');
+	setActiveMenuTab('active');
 
 	const toggleBtn = root.querySelector('.toggle-quest-list');
 	if (toggleBtn) {
@@ -129,27 +127,10 @@ Quest.onAppend = function onAppend() {
  * Clean up UI
  */
 Quest.clean = function clean() {
-	_active_menu = '';
+	_active_menu = 'active';
 	_questList = {};
-	const root = Quest.getRoot();
-	if (root) {
-		const activeList = root.querySelector('#active-quest-list');
-		if (activeList) {
-			activeList.style.display = '';
-		}
-		const inactiveList = root.querySelector('#inactive-quest-list');
-		if (inactiveList) {
-			inactiveList.style.display = 'none';
-		}
-		const featureList = root.querySelector('#feature-quest-list');
-		if (featureList) {
-			featureList.style.display = 'none';
-		}
-		const cooldownList = root.querySelector('#cooldown-quest-list');
-		if (cooldownList) {
-			cooldownList.style.display = 'none';
-		}
-	}
+	setQuestListVisible('active');
+	setActiveMenuTab('active');
 	Quest.ClearQuestList();
 	QuestHelper.clearQuestDesc();
 	QuestWindow.ClearQuestList();
@@ -431,6 +412,40 @@ Quest.addQuestToUI = function addQuest(quest) {
 	}
 };
 
+/**
+ * Show one quest list panel. Must set an explicit display value — clearing the
+ * inline style (`display = ''`) falls back to the stylesheet `display: none`
+ * and leaves the Active tab looking blank even when quests are loaded.
+ */
+function setQuestListVisible(menuId) {
+	const root = Quest.getRoot();
+	if (!root) {
+		return;
+	}
+	const panels = {
+		active: '#active-quest-list',
+		feature: '#feature-quest-list',
+		inactive: '#inactive-quest-list',
+		cooldown: '#cooldown-quest-list'
+	};
+	for (const id in panels) {
+		const el = root.querySelector(panels[id]);
+		if (el) {
+			el.style.display = id === menuId ? 'block' : 'none';
+		}
+	}
+}
+
+function setActiveMenuTab(menuId) {
+	const root = Quest.getRoot();
+	if (!root) {
+		return;
+	}
+	root.querySelectorAll('.quest-menu-item').forEach(item => {
+		item.classList.toggle('selected', item.id === menuId);
+	});
+}
+
 function onClickMenu(e) {
 	const root = Quest.getRoot();
 	const menuItem = e.currentTarget;
@@ -440,29 +455,22 @@ function onClickMenu(e) {
 		return;
 	}
 	_active_menu = menuId;
+	setActiveMenuTab(menuId);
+	setQuestListVisible(menuId);
 
-	let background_image = '';
-	root.querySelector('#active-quest-list').style.display = 'none';
-	root.querySelector('#inactive-quest-list').style.display = 'none';
-	root.querySelector('#feature-quest-list').style.display = 'none';
-	root.querySelector('#cooldown-quest-list').style.display = 'none';
-
+	let background_image = 'bg_quest1';
 	switch (_active_menu) {
 		case 'feature':
 			background_image = 'bg_quest2';
-			root.querySelector('#feature-quest-list').style.display = '';
 			break;
 		case 'inactive':
 			background_image = 'bg_quest3';
-			root.querySelector('#inactive-quest-list').style.display = '';
 			break;
 		case 'cooldown':
 			background_image = 'bg_quest4';
-			root.querySelector('#cooldown-quest-list').style.display = '';
 			break;
 		default:
 			background_image = 'bg_quest1';
-			root.querySelector('#active-quest-list').style.display = '';
 	}
 
 	Client.loadFile(`${DB.INTERFACE_PATH}renew_questui/${background_image}.bmp`, data => {

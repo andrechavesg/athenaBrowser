@@ -11,6 +11,8 @@
 #Quest .titlebar {
 	width: 100%;
 	height: 100%;
+	background-repeat: no-repeat;
+	background-size: 381px 466px;
 }
 
 #Quest .quest-top-panel {
@@ -25,21 +27,48 @@
 	margin-top: 2px;
 }
 
+/* Cover the oversized BMP tab strip and draw compact English tabs instead. */
 #Quest .quest-left-panel {
 	float: left;
-	width: 30px;
+	width: 28px;
 	height: 420px;
+	box-sizing: border-box;
+	padding-top: 8px;
+	background: #d8d8d8;
 }
 
 #Quest .quest-left-panel .quest-menu {
 	list-style: none;
-	margin: 0px;
-	padding: 0px;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 }
 
 #Quest .quest-left-panel .quest-menu .quest-menu-item {
-	height: 100px;
-	width: 30px;
+	height: 52px;
+	width: 28px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	font-size: 11px;
+	line-height: 1;
+	color: #333;
+	background: #cfcfcf;
+	border: 1px solid #9a9a9a;
+	cursor: pointer;
+	user-select: none;
+}
+
+#Quest .quest-left-panel .quest-menu .quest-menu-item.selected {
+	background: #ffffff;
+	color: #000;
+	font-weight: bold;
+	border-color: #6e6e6e;
 }
 
 #Quest .quest-right-panel {
