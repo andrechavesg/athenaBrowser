@@ -52,9 +52,8 @@ function getFirstChildWithTagName(element, tagName) {
 	}
 }
 
-function getHash(url) {
-	const hashPos = url.lastIndexOf('#');
-	return url.substring(hashPos + 1);
+function getTabId(tabLink) {
+	return tabLink.getAttribute('data-tab') || '';
 }
 
 function getSelectorFromLocation(location) {
@@ -138,7 +137,8 @@ export function createEquipment({
 				if (tabListItems[i].nodeName === 'DIV') {
 					const tabLink = getFirstChildWithTagName(tabListItems[i], 'A');
 					if (tabLink) {
-						const id = getHash(tabLink.getAttribute('href'));
+						const id = getTabId(tabLink);
+						if (!id) continue;
 						tabLinks[id] = tabLink;
 						contentDivs[id] = root.querySelector(`#${id}`);
 					}
@@ -148,10 +148,13 @@ export function createEquipment({
 
 		let idx = 0;
 		for (const id in tabLinks) {
-			tabLinks[id].onclick = showTab;
-			tabLinks[id].onfocus = function () {
+			tabLinks[id].addEventListener('click', e => {
+				e.preventDefault();
+				showTab.call(tabLinks[id], e);
+			});
+			tabLinks[id].addEventListener('focus', function () {
 				this.blur();
-			};
+			});
 			if (idx === 0) tabLinks[id].className = 'tab selected';
 			idx++;
 		}
@@ -310,7 +313,8 @@ export function createEquipment({
 	};
 
 	function showTab() {
-		const selectedId = getHash(this.getAttribute('href'));
+		const selectedId = getTabId(this);
+		if (!selectedId) return false;
 		const root = Component.getRoot();
 
 		for (const id in contentDivs) {

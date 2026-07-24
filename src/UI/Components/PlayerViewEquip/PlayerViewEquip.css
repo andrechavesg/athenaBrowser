@@ -70,6 +70,7 @@
 	vertical-align: bottom;
 	border-radius: 3px 3px 0 0;
 	text-align: center;
+	cursor: pointer;
 }
 #PlayerViewEquip .vieweqtab a.selected {
 	color: #000;

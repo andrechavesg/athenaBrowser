@@ -114,10 +114,10 @@ function generateHTML(hasTabs, costumeRows, costumeTableBg) {
 		? `  
 	<div class="vieweqtab-manager" id="vieweqtabs">  
 		<div class="vieweqtab" id="vieweqgentab">  
-			<a href="#vieweqgeneral"><span data-text="3158">General</span></a>  
+			<a data-tab="vieweqgeneral" role="tab" tabindex="0"><span data-text="3158">General</span></a>  
 		</div>  
 		<div class="vieweqtab" id="vieweqcostab">  
-			<a href="#vieweqcostume"><span data-text="3159">Costume</span></a>  
+			<a data-tab="vieweqcostume" role="tab" tabindex="0"><span data-text="3159">Costume</span></a>  
 		</div>  
 	</div>`
 		: '';
@@ -245,8 +245,8 @@ export function createPlayerViewEquip({ name, cssText, hasTabs, costumeRows, cos
 				for (const tabDiv of tabDivs) {
 					const link = tabDiv.querySelector('a');
 					if (!link) continue;
-					const href = link.getAttribute('href');
-					const id = href.substring(href.lastIndexOf('#') + 1);
+					const id = link.getAttribute('data-tab');
+					if (!id) continue;
 					tabLinks[id] = link;
 					contentDivs[id] = _root.querySelector('#' + id);
 
