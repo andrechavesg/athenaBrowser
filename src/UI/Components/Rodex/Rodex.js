@@ -261,9 +261,13 @@ Rodex.updateDeletedMailContent = function updateDeletedMailContent(openType, Mai
 
 /**
  * Show/Hide UI
+ *
+ * Must gate on __active: GUIComponent.prepare() creates _host with display !== 'none'
+ * while the node is still detached. Checking only display makes the first BasicInfo
+ * #mail click take the close path (no window ever appears).
  */
 Rodex.toggle = function toggle() {
-	if (this._host && this._host.style.display !== 'none') {
+	if (this.__active && this._host && this._host.style.display !== 'none') {
 		Rodex.closeRodexBox();
 		this._host.style.display = 'none';
 	} else {
@@ -274,8 +278,23 @@ Rodex.toggle = function toggle() {
 	}
 };
 
+/**
+ * Server failed to return a Rodex list (ZC.ACK_FAILED_ALL_RODEX_LIST).
+ * Keep the window usable and surface a chat hint instead of throwing.
+ */
+Rodex.getListFailed = function getListFailed() {
+	Rodex.list = [];
+	Rodex.createRodexList(Rodex.openType);
+	ChatBox.addText(DB.getMessage(2589), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
+};
+
 Rodex.onKeyDown = function onKeyDown(event) {
-	if ((event.which === KEYS.ESCAPE || event.key === 'Escape') && this._host && this._host.style.display !== 'none') {
+	if (
+		(event.which === KEYS.ESCAPE || event.key === 'Escape') &&
+		this.__active &&
+		this._host &&
+		this._host.style.display !== 'none'
+	) {
 		this.toggle();
 	}
 };
