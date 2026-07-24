@@ -27,48 +27,29 @@
 	margin-top: 2px;
 }
 
-/* Cover the oversized BMP tab strip and draw compact English tabs instead. */
+/* ragnarok-quest-tabs-default-v4 — Default renew_questui BMP tab strip; no CSS/English overlays. */
 #Quest .quest-left-panel {
 	float: left;
-	width: 28px;
+	width: 30px;
 	height: 420px;
-	box-sizing: border-box;
-	padding-top: 8px;
-	background: #d8d8d8;
 }
 
 #Quest .quest-left-panel .quest-menu {
 	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
+	margin: 0px;
+	padding: 0px;
 }
 
 #Quest .quest-left-panel .quest-menu .quest-menu-item {
-	height: 52px;
-	width: 28px;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	writing-mode: vertical-rl;
-	transform: rotate(180deg);
-	font-size: 11px;
-	line-height: 1;
-	color: #333;
-	background: #cfcfcf;
-	border: 1px solid #9a9a9a;
+	height: 100px;
+	width: 30px;
+	/* Hit target only; labels come from bg_quest*.bmp */
+	color: transparent;
+	font-size: 0;
 	cursor: pointer;
 	user-select: none;
-}
-
-#Quest .quest-left-panel .quest-menu .quest-menu-item.selected {
-	background: #ffffff;
-	color: #000;
-	font-weight: bold;
-	border-color: #6e6e6e;
+	background: transparent;
+	border: 0;
 }
 
 #Quest .quest-right-panel {
@@ -85,17 +66,24 @@
 	padding: 0px;
 }
 
+/* ragnarok-quest-list-layout-v1 — contain floats; allow wrapped title/summary without colliding */
 #Quest .quest-right-panel .quest-list .quest-item {
 	list-style: none;
 	width: 330px;
-	height: 42px;
-	margin-top: 2px;
+	min-height: 42px;
+	height: auto;
+	margin-top: 4px;
+	overflow: hidden;
+	display: flow-root;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	box-sizing: border-box;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-icon {
 	float: left;
 	width: 42px;
-	height: 42px;
+	min-height: 42px;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-icon .quest-item-icon-image {
@@ -111,20 +99,28 @@
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-title {
 	float: left;
 	width: 254px;
-	height: 21px;
-	display: flex;
+	min-height: 18px;
+	height: auto;
+	display: block;
+	box-sizing: border-box;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-title .quest-item-title-text {
-	margin: 5px;
+	display: block;
+	margin: 3px 5px 1px;
 	font-weight: bold;
 	color: rgb(0, 0, 145);
+	line-height: 1.25;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: anywhere;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-toggle {
 	float: left;
 	width: 30px;
-	height: 21px;
+	min-height: 18px;
+	height: auto;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-toggle .quest-item-toggle-image {
@@ -147,7 +143,8 @@
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-display {
 	float: left;
 	width: 30px;
-	height: 21px;
+	min-height: 18px;
+	height: auto;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-display .quest-item-display-image {
@@ -170,12 +167,20 @@
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-summary {
 	float: left;
 	width: 254px;
-	height: 21px;
-	display: flex;
+	min-height: 18px;
+	height: auto;
+	display: block;
+	box-sizing: border-box;
+	clear: none;
 }
 
 #Quest .quest-right-panel .quest-list .quest-item .quest-item-summary .quest-item-summary-text {
-	margin: 5px;
+	display: block;
+	margin: 1px 5px 3px;
+	line-height: 1.25;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: anywhere;
 }
 
 #Quest .quest-bottom-panel {

@@ -289,6 +289,49 @@ Quest.questExists = function questExists(questID) {
 	return typeof _questList[questID] !== 'undefined' ? true : false;
 };
 
+/** ragnarok-quest-msg-color-v1 — truncate by visible chars, then ^RRGGBB/^0 → HTML */
+function stripRoColorCodes(text) {
+	return String(text || '').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\^0/g, '');
+}
+
+function truncateRoText(text, maxLen) {
+	text = String(text || '');
+	if (stripRoColorCodes(text).length <= maxLen) {
+		return text;
+	}
+	let visible = 0;
+	let i = 0;
+	let out = '';
+	while (i < text.length && visible < maxLen) {
+		if (text[i] === '^') {
+			if (text[i + 1] === '0' && !/^[0-9A-Fa-f]/.test(text[i + 2] || '')) {
+				out += '^0';
+				i += 2;
+				continue;
+			}
+			const hex = text.slice(i + 1, i + 7);
+			if (/^[0-9A-Fa-f]{6}$/.test(hex)) {
+				out += '^' + hex;
+				i += 7;
+				continue;
+			}
+		}
+		out += text[i];
+		visible++;
+		i++;
+	}
+	return out + '^0...';
+}
+
+function formatQuestUiText(text, maxLen) {
+	const truncated = truncateRoText(text, maxLen);
+	const escaped = String(truncated)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+	return DB.formatMsgToHtml(escaped);
+}
+
 Quest.addQuestToUI = function addQuest(quest) {
 	const root = Quest.getRoot();
 	if (!root) {
@@ -297,8 +340,9 @@ Quest.addQuestToUI = function addQuest(quest) {
 	let ul_id = '';
 	const toggle_id = `qid${quest.questID}`;
 	const show_id = `sid${quest.questID}`;
-	const title = quest.title.length > 30 ? `${quest.title.substr(0, 30)}...` : quest.title;
-	const summary = quest.summary.length > 30 ? `${quest.summary.substr(0, 30)}...` : quest.summary;
+	// ragnarok-quest-msg-color-v1
+	const title = formatQuestUiText(quest.title, 55);
+	const summary = formatQuestUiText(quest.summary, 90);
 	const bt_check = _questNotShowList.includes(parseInt(Number(quest.questID))) ? 'bt_check_off' : 'bt_check_on';
 
 	const epoch_seconds = new Date() / 1000;
@@ -418,6 +462,7 @@ Quest.addQuestToUI = function addQuest(quest) {
  * and leaves the Active tab looking blank even when quests are loaded.
  */
 function setQuestListVisible(menuId) {
+	// ragnarok-quest-list-visible-v1
 	const root = Quest.getRoot();
 	if (!root) {
 		return;
