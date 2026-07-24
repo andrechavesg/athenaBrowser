@@ -5,6 +5,13 @@
 				<select name="mapList" id="WorldMaps"></select>
 			</div>
 			<div class="right">
+				<!-- WORLDMAP-REDESIGN -->
+				<span class="wm-legend" title="Map legend">
+					<span><span class="chip town"></span>Town</span>
+					<span><span class="chip field"></span>Field</span>
+					<span><span class="chip dungeon"></span>Dungeon</span>
+					<span><span class="chip navi"></span>Route</span>
+				</span>
 				<button class="base showlvl" data-background="checkbox_0.bmp" data-preload="checkbox_1.bmp"></button>
 				<span data-text="2209">Show Monsters</span>
 				<button
@@ -27,6 +34,7 @@
 	<div id="map-tooltip" style="display: none">
 		<div class="tooltip-img"></div>
 		<div class="tooltip-mapname"></div>
+		<div class="tooltip-kind"></div>
 		<div class="tooltip-mapid"></div>
 	</div>
 </div>

@@ -278,13 +278,14 @@
 }
 
 #WorldMap .worldmap .section.is-dungeon {
-	background-color: rgba(255, 0, 0, 0.4) !important;
-	border: 1px solid rgba(255, 0, 0, 0.6) !important;
+	/* superseded by WORLDMAP-REDESIGN block */
+	background-color: rgba(210, 140, 40, 0.22) !important;
+	border: 1px dashed rgba(210, 150, 50, 0.95) !important;
 }
 
 #WorldMap .worldmap .section.is-dungeon-stacked {
 	background-color: transparent !important;
-	border: 1px solid rgba(255, 0, 0, 0.6) !important;
+	border: 1px dashed rgba(210, 150, 50, 0.7) !important;
 	display: block !important;
 }
 
@@ -336,4 +337,257 @@
 		1px -1px 0 #000,
 		-1px 1px 0 #000,
 		1px 1px 0 #000;
+}
+
+/* === WORLDMAP-REDESIGN === */
+#WorldMap {
+	background:
+		radial-gradient(ellipse at 50% 20%, rgba(40, 55, 70, 0.55) 0%, transparent 55%),
+		linear-gradient(180deg, #0c1218 0%, #05080c 100%);
+}
+
+#WorldMap .titlebar {
+	height: 22px;
+	background: linear-gradient(180deg, #f4efe4 0%, #d9d0c0 100%);
+	border-bottom: 1px solid rgba(40, 30, 20, 0.35);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+
+#WorldMap .titlebar .text,
+#WorldMap .titlebar .right span {
+	color: #2a2218;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+#WorldMap .titlebar select {
+	height: 18px;
+	margin-top: 2px;
+	border: 1px solid rgba(60, 45, 30, 0.45);
+	background: rgba(255, 252, 245, 0.92);
+	color: #2a2218;
+	font-weight: 600;
+	border-radius: 2px;
+}
+
+#WorldMap .wm-legend {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-right: 10px;
+	vertical-align: middle;
+	font-size: 10px;
+	font-weight: 700;
+	color: #2a2218;
+}
+
+#WorldMap .wm-legend .chip {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	vertical-align: -1px;
+	margin-right: 3px;
+}
+
+#WorldMap .wm-legend .chip.town {
+	background: rgba(212, 175, 55, 0.85);
+	border: 1px solid rgba(120, 90, 20, 0.9);
+}
+
+#WorldMap .wm-legend .chip.field {
+	background: rgba(70, 140, 90, 0.55);
+	border: 1px solid rgba(40, 90, 55, 0.85);
+}
+
+#WorldMap .wm-legend .chip.dungeon {
+	background: rgba(210, 140, 40, 0.35);
+	border: 1px dashed rgba(190, 120, 30, 0.95);
+}
+
+#WorldMap .wm-legend .chip.navi {
+	background: rgba(0, 220, 255, 0.45);
+	border: 1px solid rgba(0, 200, 240, 0.9);
+}
+
+#WorldMap .worldmap .map-view {
+	filter: saturate(1.05) contrast(1.04);
+}
+
+#WorldMap .worldmap .section {
+	border: 1px solid transparent;
+	border-radius: 3px;
+	transition: background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+#WorldMap .worldmap .section:hover {
+	background-color: rgba(90, 160, 220, 0.38);
+	border-color: rgba(220, 235, 255, 0.65);
+	box-shadow: 0 0 0 1px rgba(40, 90, 140, 0.35);
+	z-index: 3;
+}
+
+#WorldMap .worldmap .section.is-town:hover {
+	background-color: rgba(212, 175, 55, 0.28);
+	border-color: rgba(240, 210, 120, 0.85);
+}
+
+#WorldMap .worldmap .section.is-field:not(.currentmap):not(.navitarget):not(.membersonmap) {
+	/* light green veil so fields read apart from dungeon art boxes */
+	background-color: rgba(70, 140, 90, 0.08);
+}
+
+#WorldMap .worldmap .section.membersonmap:not(.currentmap) {
+	background-color: rgba(120, 210, 70, 0.42);
+	border-color: rgba(180, 255, 120, 0.7);
+}
+
+#WorldMap .worldmap .section.currentmap {
+	background-color: rgba(255, 150, 40, 0.48);
+	border-color: rgba(255, 210, 120, 0.9);
+	box-shadow: 0 0 0 2px rgba(255, 140, 40, 0.55);
+	z-index: 4;
+}
+
+#WorldMap .worldmap .section.navitarget:not(.currentmap) {
+	background-color: rgba(0, 220, 255, 0.42);
+	border-color: rgba(160, 240, 255, 0.95);
+	box-shadow: 0 0 0 2px rgba(0, 200, 240, 0.9);
+	z-index: 5;
+}
+
+#WorldMap .worldmap .section.navitarget.currentmap {
+	box-shadow: 0 0 0 2px rgba(0, 200, 240, 0.95), 0 0 0 4px rgba(255, 140, 40, 0.4);
+}
+
+/* Dungeons: amber dashed outline — not solid red (avoids Midgard/Orbis art confusion) */
+#WorldMap .worldmap .section.is-dungeon {
+	background-color: rgba(210, 140, 40, 0.22) !important;
+	border: 1px dashed rgba(210, 150, 50, 0.95) !important;
+	box-shadow: inset 0 0 0 1px rgba(80, 45, 10, 0.35);
+}
+
+#WorldMap .worldmap .section.is-dungeon:hover {
+	background-color: rgba(230, 160, 50, 0.4) !important;
+	border-style: solid !important;
+}
+
+#WorldMap .worldmap .section.is-dungeon-stacked {
+	background-color: transparent !important;
+	border: 1px dashed rgba(210, 150, 50, 0.7) !important;
+	display: block !important;
+}
+
+#WorldMap .worldmap .connector-line {
+	height: 2px;
+	background: linear-gradient(90deg, rgba(210, 150, 50, 0.15), rgba(210, 150, 50, 0.75), rgba(210, 150, 50, 0.15));
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.45);
+}
+
+#WorldMap .worldmap .section .displayname,
+#WorldMap .worldmap .section .mapname,
+#WorldMap .worldmap .section .mapid,
+#WorldMap .worldmap .section .level-range-text {
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	letter-spacing: 0.01em;
+	pointer-events: none;
+}
+
+#WorldMap .worldmap .section.is-dungeon .displayname,
+#WorldMap .worldmap .section.is-town .displayname,
+#WorldMap .worldmap .section.currentmap .displayname {
+	display: block;
+	position: absolute;
+	top: 2px;
+	left: 50%;
+	transform: translate(-50%, 0);
+	padding: 0 3px;
+	max-width: 96%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	height: auto;
+	min-height: 12px;
+	line-height: 12px;
+	font-size: 10px;
+	font-weight: 800;
+	color: #fff8e8;
+	background: rgba(20, 14, 8, 0.55);
+	border-radius: 2px;
+	text-shadow:
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000,
+		1px 1px 0 #000;
+	text-align: center;
+}
+
+#WorldMap .worldmap .section.is-dungeon .displayname {
+	color: #ffe2a8;
+	background: rgba(60, 35, 8, 0.62);
+}
+
+#WorldMap .worldmap .section.is-town .displayname {
+	color: #ffe9a0;
+}
+
+#WorldMap .worldmap.show-lvls .section:not(.is-dungeon):not(.is-dungeon-stacked) .mapname {
+	top: 2px;
+	padding: 0 2px;
+	background: rgba(10, 20, 12, 0.5);
+	border-radius: 2px;
+	font-size: 9px;
+}
+
+#WorldMap .worldmap .section .level-range-text {
+	top: auto;
+	bottom: 2px;
+	transform: translate(-50%, 0);
+	font-size: 9px;
+	color: #e8ffe8;
+	background: rgba(10, 30, 14, 0.55);
+	border-radius: 2px;
+	padding: 0 2px;
+	width: auto;
+	max-width: 96%;
+}
+
+#WorldMap #map-tooltip {
+	padding: 0;
+	overflow: hidden;
+	background: linear-gradient(180deg, rgba(18, 22, 28, 0.94), rgba(8, 10, 14, 0.96));
+	border: 1px solid rgba(210, 180, 120, 0.55);
+	border-radius: 6px;
+	box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+	min-width: 160px;
+}
+
+#WorldMap #map-tooltip .tooltip-img {
+	width: 160px;
+	height: 160px;
+	border-bottom: 1px solid rgba(210, 180, 120, 0.35);
+	background-color: #0a0e14;
+}
+
+#WorldMap #map-tooltip .tooltip-mapname {
+	color: #f0d78c;
+	font-size: 13px;
+	padding: 6px 8px 2px;
+}
+
+#WorldMap #map-tooltip .tooltip-mapid {
+	color: #b8c4d0;
+	font-size: 11px;
+	padding: 0 8px 8px;
+}
+
+#WorldMap #map-tooltip .tooltip-kind {
+	color: #9ad0ff;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	padding: 0 8px 6px;
 }

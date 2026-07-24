@@ -13844,12 +13844,14 @@ PACKET.AC.ACCEPT_LOGIN3 = function PACKET_AC_ACCEPT_LOGIN3(fp, end) {
 			out[i].property = fp.readUShort();
 			if (PACKETVER.value >= 20170315) {
 				out[i].serverAddress = fp.readBinaryString(128);
-				if (out[i].serverAddress && out[i].serverAddress.includes(':')) {
-					[out[i].ip, out[i].port] = out[i].serverAddress.split(':');
+				/* PACKETVER-20250716 */
+				const addr = (out[i].serverAddress || '').replace(/\0.*$/, '').trim();
+				const m = /^(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5})$/.exec(addr);
+				if (m) {
 					out[i].ip =
-						out[i].ip.split('.').reduceRight((ip, octet, j) => ip + (parseInt(octet, 10) << (8 * j)), 0) >>>
+						m[1].split('.').reduceRight((ip, octet, j) => ip + (parseInt(octet, 10) << (8 * j)), 0) >>>
 						0;
-					out[i].port = parseInt(out[i].port, 10);
+					out[i].port = parseInt(m[2], 10);
 				}
 			}
 		}

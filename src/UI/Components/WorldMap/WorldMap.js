@@ -212,6 +212,11 @@ function showTooltip(section) {
 
 	const displayName = section.getAttribute('data-displayname') || '';
 	tooltip.querySelector('.tooltip-mapname').textContent = displayName;
+	const kindEl = tooltip.querySelector('.tooltip-kind');
+	if (kindEl) {
+		const kind = section.getAttribute('data-kind') || 'map';
+		kindEl.textContent = kind;
+	}
 	tooltip.querySelector('.tooltip-mapid').textContent = section.id;
 
 	const tooltipImg = tooltip.querySelector('.tooltip-img');
@@ -258,6 +263,29 @@ function hideTooltip() {
  * @param {WorldMap} map world map data
  * @param {string} imgData world map image data as a base64
  */
+
+/** WORLDMAP-REDESIGN: classify sections when lua type flags are absent */
+function inferSectionKind(section, sectionType) {
+	if (sectionType === 1) return 'dungeon';
+	const id = String(section.id || '').toLowerCase();
+	const name = String(section.name || '').toLowerCase();
+	if (
+		/_dun|cave|abyss|thanatos|odin_tem|kh_|ra_san|ice_dun|ein_dun|thor_v|lhz_dun|ama_dun|gon_dun|lou_dun|ayo_dun|mosk_dun|man_dun|bra_dun|dew_dun|dic_dun|ecl_tdun|mal_dun|iz_dun|prt_maze|gef_dun|pay_dun|moc_pryd|anthell|in_sphinx|orcsdun|xmas_dun|beach_dun|tur_dun|jupe_core|juperos|lasa_dun|slabw|mag_dun|nyd_dun|gla_dun|c_tower|alde_dun|mjo_dun|um_dun|nif_fild|yggdrasil|gld_dun|gld2_|teg_dun|rockmi|sp_cor|sp_os|sp_rudus|bl_soul|bl_grass|bl_lava|bl_ice|bl_temp/.test(
+			id
+		) ||
+		/dungeon|cave|temple|tower|labyrinth|pyramid|sphinx|abyss|sewer|hideout/.test(name)
+	) {
+		return 'dungeon';
+	}
+	if (/_fild|_field|field|outskirts|plateau|gorge|grass|plane/.test(id + ' ' + name)) {
+		return 'field';
+	}
+	// Compact town / settlement tiles (no field/dungeon keywords)
+	if (!/_\d+$/.test(id) || /prontera|geffen|payon|morocc|alberta|izlude|aldebaran|yuno|lighthalzen|hugel|rachel|veins|einbroch|einbech|amatsu|gonryun|louyang|ayothaya|brasilis|dewata|malangdo|mora|eclage|lasagna|harboro|port_prison|wolfvill|rockridge/.test(id)) {
+		return 'town';
+	}
+	return 'field';
+}
 function createWorldMapView(map, imgData) {
 	const root = WorldMap.getRoot();
 	const container = root.querySelector('.map .content');
@@ -354,6 +382,12 @@ function createWorldMapView(map, imgData) {
 			// -----------------------
 
 			let className = 'section';
+			const kind = inferSectionKind(section, sectionType);
+			el.setAttribute('data-kind', kind);
+			className += ' is-' + kind;
+			if (kind === 'dungeon') {
+				sectionType = 1;
+			}
 			if (currentMap == section.id) {
 				className += ' currentmap';
 			}
