@@ -9,6 +9,7 @@
  */
 
 import DB from 'DB/DBManager.js';
+import Client from 'Core/Client.js';
 import Network from 'Network/NetworkManager.js';
 import PACKET from 'Network/PacketStructure.js';
 import KEYS from 'Controls/KeyEventHandler.js';
@@ -39,6 +40,65 @@ Bank.render = () => htmlText;
 const maxInt = 2147483647;
 
 /**
+ * iRO / older msgstringtable often leave bank rows as empty "#".
+ * Keep English fallbacks keyed by the IDs used in Bank.html / error paths.
+ */
+const MSG_FALLBACKS = {
+	2771: 'Zeny Storage',
+	2772: 'in bank',
+	2773: 'on hand',
+	2774: 'Deposit',
+	2775: 'Withdraw',
+	2776: '1 z UP',
+	2777: '1 z Down',
+	2778: 'Max',
+	2779: 'There is no Input value',
+	2781: 'There is no Input value',
+	2782: 'Numbers only',
+	2783: 'Exceeded max input',
+	2784: 'Please enter at least 1 zeny',
+	2785: 'Insufficient funds',
+	2787: 'Exceeded max zeny'
+};
+
+function bankMessage(id) {
+	const text = DB.getMessage(id, '');
+	if (text && text !== '#') {
+		return text;
+	}
+	return MSG_FALLBACKS[id] || '';
+}
+
+function applyBankTextFallbacks(root) {
+	root.querySelectorAll('[data-text]').forEach(node => {
+		const id = parseInt(node.dataset.text, 10);
+		if (!Number.isFinite(id)) {
+			return;
+		}
+		const current = (node.textContent || '').trim();
+		if (!current || current === '#') {
+			const fallback = bankMessage(id);
+			if (fallback) {
+				node.textContent = fallback;
+			}
+		}
+	});
+}
+
+function probeBankAssets(root) {
+	const bankRoot = root.querySelector('#Bank') || root;
+	Client.loadFile(
+		DB.INTERFACE_PATH + 'bank/bg_bank.bmp',
+		() => {
+			bankRoot.classList.remove('assets-missing');
+		},
+		() => {
+			bankRoot.classList.add('assets-missing');
+		}
+	);
+}
+
+/**
  * @var {Preferences} structure
  */
 const _preferences = Preferences.get(
@@ -59,6 +119,8 @@ Bank.init = function init() {
 	const inputDepo = root.querySelector('.depo');
 
 	this.draggable();
+	applyBankTextFallbacks(root);
+	probeBankAssets(root);
 
 	root.querySelector('.plus').addEventListener('click', () => {
 		if (isMax || inputDepo.value === '') {
@@ -138,33 +200,33 @@ function CheckValue(value) {
 
 	if (value === '') {
 		if (error) {
-			error.textContent = DB.getMessage(2781);
+			error.textContent = bankMessage(2781);
 		}
-		ChatBox.addText(DB.getMessage(2779), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(bankMessage(2779), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 		return false;
 	}
 
 	if (typeof value === 'string' && value !== 'MAX' && !/^\d+$/.test(value)) {
 		if (error) {
-			error.textContent = DB.getMessage(2782);
+			error.textContent = bankMessage(2782);
 		}
-		ChatBox.addText(DB.getMessage(2488), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(DB.getMessage(2488, 'Invalid input'), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 		return false;
 	}
 
 	if (parseInt(value) <= 0) {
 		if (error) {
-			error.textContent = DB.getMessage(2784);
+			error.textContent = bankMessage(2784);
 		}
-		ChatBox.addText(DB.getMessage(2769), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(DB.getMessage(2769, bankMessage(2784)), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 		return false;
 	}
 
 	if (parseInt(value) > maxInt) {
 		if (error) {
-			error.textContent = DB.getMessage(2783);
+			error.textContent = bankMessage(2783);
 		}
-		ChatBox.addText(DB.getMessage(2768), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(DB.getMessage(2768, bankMessage(2783)), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 		return false;
 	}
 
@@ -192,9 +254,9 @@ function sendDepositRequest(value) {
 			if (Session.zeny === 0) {
 				const error = root.querySelector('.errorupdate');
 				if (error) {
-					error.textContent = DB.getMessage(2785);
+					error.textContent = bankMessage(2785);
 				}
-				ChatBox.addText(DB.getMessage(2770), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+				ChatBox.addText(DB.getMessage(2770, bankMessage(2785)), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 				input.value = '';
 				return;
 			} else {
@@ -231,9 +293,9 @@ function sendWithdrawRequest(value) {
 			value = parseInt(maxInt) - Session.zeny;
 		} else if (getval === 0) {
 			if (error) {
-				error.textContent = DB.getMessage(2785);
+				error.textContent = bankMessage(2785);
 			}
-			ChatBox.addText(DB.getMessage(2770), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+			ChatBox.addText(DB.getMessage(2770, bankMessage(2785)), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 			input.value = '';
 			return;
 		} else {
@@ -243,9 +305,9 @@ function sendWithdrawRequest(value) {
 
 	if (parseInt(Session.zeny) + parseInt(value) > parseInt(maxInt)) {
 		if (error) {
-			error.textContent = DB.getMessage(2787);
+			error.textContent = bankMessage(2787);
 		}
-		ChatBox.addText(DB.getMessage(2459), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(DB.getMessage(2459, bankMessage(2787)), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 		input.value = '';
 		return;
 	}
@@ -279,6 +341,9 @@ Bank.onAppend = function onAppend() {
 
 	this._host.style.top = Math.min(Math.max(0, _preferences.y), Renderer.height - this._host.offsetHeight) + 'px';
 	this._host.style.left = Math.min(Math.max(0, _preferences.x), Renderer.width - this._host.offsetWidth) + 'px';
+
+	applyBankTextFallbacks(root);
+	probeBankAssets(root);
 
 	const input = root.querySelector('.depo');
 	input.value = '';
