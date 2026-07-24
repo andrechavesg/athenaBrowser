@@ -291,7 +291,9 @@ Quest.questExists = function questExists(questID) {
 
 /** ragnarok-quest-msg-color-v1 — truncate by visible chars, then ^RRGGBB/^0 → HTML */
 function stripRoColorCodes(text) {
-	return String(text || '').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\^0/g, '');
+	return String(text || '')
+		.replace(/\^[0-9A-Fa-f]{6}/g, '')
+		.replace(/\^0/g, '');
 }
 
 function truncateRoText(text, maxLen) {
@@ -325,10 +327,7 @@ function truncateRoText(text, maxLen) {
 
 function formatQuestUiText(text, maxLen) {
 	const truncated = truncateRoText(text, maxLen);
-	const escaped = String(truncated)
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;');
+	const escaped = String(truncated).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	return DB.formatMsgToHtml(escaped);
 }
 
