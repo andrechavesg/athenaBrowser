@@ -1,13 +1,14 @@
 :host {
-	width: 280px;
-	height: 145px;
+	width: 288px;
+	height: 168px;
 	top: 50%;
 	left: 50%;
 }
 
 #Bank {
 	position: absolute;
-	width: 280px;
+	width: 288px;
+	font-family: Tahoma, 'MS Sans Serif', sans-serif;
 }
 
 #Bank .clear {
@@ -15,7 +16,7 @@
 }
 
 #Bank .titlebar {
-	width: 280px;
+	width: 288px;
 	height: 17px;
 	background-color: #c6d3e7;
 	background-repeat: repeat-x;
@@ -55,71 +56,83 @@
 }
 
 #Bank .container {
-	display: inline-block;
-	width: 280px;
-	height: 130px;
-	border-spacing: 0;
+	display: flex;
+	flex-direction: column;
+	width: 288px;
+	height: 150px;
+	box-sizing: border-box;
+	padding: 8px 12px 8px;
 	/* iRO GRF has no bank/* textures; keep a readable panel until Skin overlay lands */
 	background-color: #efe6d0;
 	background-repeat: no-repeat;
+	background-size: 100% 100%;
 	border: 1px solid #8a7a55;
-	box-sizing: border-box;
 }
 
 #Bank .uppercontainer {
-	position: relative;
-	height: 53px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 4px;
+	height: 42px;
+	flex-shrink: 0;
 }
 
-#Bank .inbanktitle {
-	height: 15px;
-	position: relative;
-	width: 90px;
-	left: 30px;
-	top: 10px;
-	font-size: 11px;
-	color: #2a2a2a;
+#Bank .balance-row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 15px;
+	padding: 0 4px;
 }
 
+#Bank .inbanktitle,
 #Bank .onhandtitle {
-	position: relative;
-	height: 15px;
-	width: 90px;
-	left: 28px;
+	flex: 0 0 auto;
 	font-size: 11px;
 	color: #2a2a2a;
+	white-space: nowrap;
 }
 
-#Bank .inbank.currency {
-	position: relative;
-	left: 80px;
-	top: -5px;
-	width: 100px;
-	text-align: right;
-}
-
+#Bank .inbank.currency,
 #Bank .onhand.currency {
-	position: relative;
-	left: 80px;
-	top: -15px;
-	width: 100px;
+	flex: 1 1 auto;
+	min-width: 0;
 	text-align: right;
+	font-size: 11px;
+	font-weight: bold;
+	color: #1a1a1a;
+	white-space: nowrap;
 }
 
 #Bank .midcontainer {
 	position: relative;
-	height: 58px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	height: 54px;
+	flex-shrink: 0;
+	padding: 0 2px;
+}
+
+#Bank .amount-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 #Bank input.depo.no-spinners {
-	position: relative;
-	left: 75px;
-	top: 20px;
-	width: 100px;
-	height: 14px;
+	width: 128px;
+	height: 22px;
+	padding: 1px 4px;
 	background-color: #f7f7f7;
 	border: 1px solid #7a7a7a;
 	box-sizing: border-box;
+	font-size: 11px;
 }
 
 #Bank .no-spinners::-webkit-inner-spin-button,
@@ -128,61 +141,71 @@
 	margin: 0;
 }
 
+#Bank .steppers {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 2px;
+	flex: 0 0 auto;
+}
+
+#Bank .action-group {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
 #Bank button {
 	background-color: transparent;
 	background-repeat: no-repeat;
+	background-position: center;
 	cursor: pointer;
+	padding: 0;
+	box-sizing: border-box;
 }
 
-#Bank .plus {
-	position: relative;
-	height: 10px;
-	width: 18px;
-	border: 0px;
-	left: 70px;
-	top: 10px;
-}
+#Bank .plus,
 #Bank .minus {
 	position: relative;
-	height: 10px;
-	width: 18px;
-	border: 0px;
-	left: 49px;
-	top: 20px;
+	height: 12px;
+	width: 20px;
+	border: 0;
 }
 
-#Bank .deposit {
-	position: relative;
-	height: 20px;
-	width: 42px;
-	border: 0px;
-	left: 60px;
-	top: 5px;
-}
-
+#Bank .deposit,
 #Bank .withdraw {
 	position: relative;
 	height: 20px;
-	width: 42px;
-	border: 0px;
-	left: 15px;
-	top: 30px;
+	width: 58px;
+	border: 0;
 }
 
 #Bank .errorupdate {
 	position: absolute;
-	height: 15px;
-	width: 150px;
-	border: 0px;
-	left: 15px;
-	top: 42px;
-	text-align: center;
+	left: 4px;
+	right: 72px;
+	bottom: 0;
+	height: 12px;
+	text-align: left;
 	color: red;
+	font-size: 9px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	pointer-events: none;
 }
 
 #Bank .lowercontainer {
-	position: relative;
-	height: 19px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	height: 28px;
+	flex-shrink: 0;
+	padding: 2px 0 0;
+	margin-top: auto;
 }
 
 #Bank .max,
@@ -190,11 +213,13 @@
 #Bank .onemil,
 #Bank .hundtsn {
 	position: relative;
-	width: 46px;
-	height: 16px;
-	border: 0px;
-	left: 40px;
+	flex: 1 1 0;
+	width: auto;
+	min-width: 0;
+	height: 18px;
+	border: 0;
 	background-repeat: no-repeat;
+	background-position: center;
 	background-color: transparent;
 }
 
@@ -242,24 +267,25 @@
 
 #Bank.assets-missing .plus,
 #Bank.assets-missing .minus {
-	width: 18px;
-	height: 12px;
-	font-size: 10px;
+	width: 20px;
+	height: 14px;
+	font-size: 11px;
+	line-height: 1;
 }
 
 #Bank.assets-missing .deposit,
 #Bank.assets-missing .withdraw {
-	width: 52px;
+	width: 62px;
 	height: 20px;
+	font-size: 9px;
 }
 
 #Bank.assets-missing .max,
 #Bank.assets-missing .tenmil,
 #Bank.assets-missing .onemil,
 #Bank.assets-missing .hundtsn {
-	width: 46px;
-	height: 16px;
-	font-size: 8px;
+	height: 18px;
+	font-size: 9px;
 }
 
 #Bank.assets-missing .buttons .name {
