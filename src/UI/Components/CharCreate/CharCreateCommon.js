@@ -157,6 +157,10 @@ export function createCharCreate(config) {
 	let _curhead = 1;
 	let _prevcolor = 0;
 	let _curcolor = 0;
+	let _hairPreviewTick = 0;
+	const _hairPreview = {
+		entity: new Entity()
+	};
 
 	const render = hasRace ? renderRace : renderLegacy;
 
@@ -541,6 +545,10 @@ export function createCharCreate(config) {
 		};
 		if (gridHairstyle) {
 			root.querySelector('.title').textContent = resolveMsg(3356, 'Create Character');
+			const styleTitle = root.querySelector('.style_title');
+			if (styleTitle) {
+				styleTitle.textContent = resolveMsg(3349, 'Style');
+			}
 			root.querySelector('.human_title').textContent = resolveMsg(3017, 'Novice');
 			root.querySelector('.human_desc').textContent = resolveMsg(
 				3021,
@@ -639,18 +647,25 @@ export function createCharCreate(config) {
 				}
 			);
 
+			const hairPanel = root.querySelector(`#${_race}_${_gender}`);
 			Client.loadFile(`${DB.INTERFACE_PATH}make_character_ver2/bt_hairstyle_normal.bmp`, dataURI => {
-				const el = root.querySelector(`.style${_prevhead}`);
+				const el = hairPanel && hairPanel.querySelector(`.style${_prevhead}`);
 				if (el) {
 					el.style.backgroundImage = `url(${dataURI})`;
 				}
 			});
 			Client.loadFile(`${DB.INTERFACE_PATH}make_character_ver2/bt_hairstyle_select.bmp`, dataURI => {
-				const el = root.querySelector(`.style${_curhead}`);
+				const el = hairPanel && hairPanel.querySelector(`.style${_curhead}`);
 				if (el) {
 					el.style.backgroundImage = `url(${dataURI})`;
 				}
 			});
+
+			// Sprite previews fill the grid when img_hairstyle tiles are missing/stubbed.
+			if (!_hairPreviewTick || tick - _hairPreviewTick > 250) {
+				_hairPreviewTick = tick;
+				paintHairStylePreviews(root);
+			}
 		}
 	}
 
@@ -832,16 +847,95 @@ export function createCharCreate(config) {
 	}
 
 	/**
+	 * Render head sprites into each visible hairstyle cell.
+	 * Skin packs often omit img_hairstyle*.bmp; GRF tiles can also be stubs.
+	 */
+	function paintHairStylePreviews(root) {
+		const panel = root.querySelector(`#${_race}_${_gender}`);
+		if (!panel || panel.style.display === 'none') {
+			return;
+		}
+
+		const sex = _gender === 'male' ? GENDER.MALE : GENDER.FEMALE;
+		const job = _race === 'human' ? RACE.HUMAN : RACE.DORAM;
+		const headpalette = _model.entity.headpalette;
+
+		panel.querySelectorAll('.hstyle_button').forEach(btn => {
+			const head = parseInt(btn.getAttribute('for'), 10);
+			if (!Number.isFinite(head) || head < 1) {
+				return;
+			}
+
+			let canvas = btn.querySelector('canvas.hair-preview');
+			if (!canvas) {
+				canvas = document.createElement('canvas');
+				canvas.className = 'hair-preview';
+				canvas.width = 36;
+				canvas.height = 37;
+				canvas.style.cssText =
+					'pointer-events:none;display:block;position:absolute;left:0;top:0;width:36px;height:37px;z-index:3;';
+				btn.appendChild(canvas);
+			}
+
+			const ctx = canvas.getContext('2d');
+			_hairPreview.entity.set({
+				sex,
+				job,
+				head,
+				headpalette,
+				action: 0,
+				direction: 4
+			});
+			SpriteRenderer.bind2DContext(ctx, 18, 30);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			_hairPreview.entity.renderEntity();
+		});
+	}
+
+	/**
+	 * Also apply BMP hairstyle icons when present (under the sprite preview).
+	 */
+	function loadHairStyleIcons(root) {
+		const panel = root.querySelector(`#${_race}_${_gender}`);
+		if (!panel) {
+			return;
+		}
+
+		panel.querySelectorAll('.hstyle_button').forEach(btn => {
+			const img = btn.querySelector('ui-image');
+			const src = img && img.getAttribute('src');
+			if (!src) {
+				return;
+			}
+			Client.loadFile(
+				DB.INTERFACE_PATH + src,
+				dataURI => {
+					if (typeof dataURI === 'string' && dataURI.length > 32) {
+						btn.style.backgroundImage = `url(${dataURI})`;
+						btn.style.backgroundSize = '36px 37px';
+						btn.style.backgroundRepeat = 'no-repeat';
+						btn.style.backgroundPosition = 'center';
+					}
+				},
+				() => {
+					/* sprite preview covers missing tiles */
+				}
+			);
+		});
+	}
+
+	/**
 	 * Update model hairstyle
 	 */
 	function updateHStyle(target) {
 		const root = Component.getRoot();
 		const type = 'head';
-		const value = parseInt(target.getAttribute('for'));
+		const value = parseInt(target.getAttribute('for'), 10);
+		const hairPanel = root.querySelector(`#${_race}_${_gender}`);
 
 		_prevhead = _model.entity.head;
 		Client.loadFile(`${DB.INTERFACE_PATH}make_character_ver2/bt_hairstyle_normal.bmp`, dataURI => {
-			const el = root.querySelector(`.style${_prevhead}`);
+			const el = hairPanel && hairPanel.querySelector(`.style${_prevhead}`);
 			if (el) {
 				el.style.backgroundImage = `url(${dataURI})`;
 			}
@@ -875,6 +969,7 @@ export function createCharCreate(config) {
 		_curcolor = value;
 
 		updateCharacterGrid(type, value);
+		paintHairStylePreviews(root);
 	}
 
 	/**
@@ -907,9 +1002,12 @@ export function createCharCreate(config) {
 		}
 
 		// In between changes of race, it needs to clear everything
+		const nextRace = value === 0 ? 'human' : 'doram';
+		const nextGender = _gender;
+		const nextPanel = root.querySelector(`#${nextRace}_${nextGender}`);
 		for (let i = 1; i <= 24; i++) {
 			Client.loadFile(`${DB.INTERFACE_PATH}make_character_ver2/bt_hairstyle_normal.bmp`, dataURI => {
-				const el = root.querySelector(`.style${i}`);
+				const el = nextPanel && nextPanel.querySelector(`.style${i}`);
 				if (el) {
 					el.style.backgroundImage = `url(${dataURI})`;
 				}
@@ -922,6 +1020,8 @@ export function createCharCreate(config) {
 
 		updateHstyleList(type, value);
 		updateCharacterGrid(type, value);
+		loadHairStyleIcons(root);
+		paintHairStylePreviews(root);
 	}
 
 	/**
@@ -980,6 +1080,9 @@ export function createCharCreate(config) {
 		if (hairStyleEl) {
 			hairStyleEl.style.display = 'block';
 		}
+
+		loadHairStyleIcons(root);
+		paintHairStylePreviews(root);
 	}
 
 	function cleanup() {
@@ -1023,6 +1126,8 @@ export function createCharCreate(config) {
 		}
 
 		updateCharacterGrid('default', 0);
+		loadHairStyleIcons(root);
+		paintHairStylePreviews(root);
 	}
 
 	/**

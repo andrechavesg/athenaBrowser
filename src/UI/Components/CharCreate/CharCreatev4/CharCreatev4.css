@@ -1,20 +1,39 @@
+/* charcreate-v4-polish-v1 — layout for make_character_ver2 (794×422) */
 :host {
 	width: 794px;
 	height: 422px;
+	overflow: visible;
 }
 
 #charcreate_v4 {
 	position: absolute;
 	width: 794px;
 	height: 422px;
+	overflow: hidden;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	background-size: 794px 422px;
+	font-family: Tahoma, 'Segoe UI', sans-serif;
 }
 
 #charcreate_v4 .title {
 	position: absolute;
-	left: 45px;
-	top: 15px;
-	height: 20px;
-	width: 200px;
+	left: 18px;
+	top: 6px;
+	height: 24px;
+	width: 210px;
+	z-index: 8;
+	box-sizing: border-box;
+	padding: 0 8px;
+	line-height: 24px;
+	color: #f7fbff;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	text-shadow: 0 1px 2px rgba(0, 20, 50, 0.85);
+	/* Cover BMP-baked CREATE / REATE ghost text */
+	background: rgba(28, 72, 128, 0.96);
+	border-radius: 2px;
 }
 
 #charcreate_v4 .human::before,
@@ -41,27 +60,41 @@
 	left: 20px;
 	outline: none;
 	background-repeat: no-repeat;
+	background-size: 370px 170px;
+	background-position: 0 0;
 }
 #charcreate_v4 .human_title {
 	position: absolute;
-	color: white;
-	top: 22px;
-	left: 45px;
+	top: 16px;
+	left: 100px;
 	height: 20px;
-	width: 50px;
+	width: 140px;
+	z-index: 3;
+	color: #16345c;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 20px;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 #charcreate_v4 .human_desc {
-	position: relative;
-	top: 22px;
-	left: 110px;
-	height: 60px;
-	width: 220px;
+	position: absolute;
+	top: 44px;
+	left: 100px;
+	height: 72px;
+	width: 245px;
+	z-index: 3;
+	color: #1c3a62;
+	font-size: 12px;
+	line-height: 16px;
+	overflow: hidden;
 }
+
 /** Human Chargen **/
 #charcreate_v4 .human .chargen canvas {
 	position: absolute;
 	top: 40px;
 	left: 25px;
+	z-index: 2;
 }
 
 /** Doram Race **/
@@ -73,36 +106,70 @@
 	left: 20px;
 	outline: none;
 	background-repeat: no-repeat;
+	background-size: 370px 170px;
+	background-position: 0 0;
 }
 #charcreate_v4 .doram_title {
 	position: absolute;
-	color: white;
-	top: 22px;
-	left: 45px;
+	top: 16px;
+	left: 100px;
 	height: 20px;
-	width: 50px;
+	width: 140px;
+	z-index: 3;
+	color: #16345c;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 20px;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 #charcreate_v4 .doram_desc {
-	position: relative;
-	top: 22px;
-	left: 110px;
-	height: 60px;
-	width: 220px;
+	position: absolute;
+	top: 44px;
+	left: 100px;
+	height: 72px;
+	width: 245px;
+	z-index: 3;
+	color: #1c3a62;
+	font-size: 12px;
+	line-height: 16px;
+	overflow: hidden;
 }
+
 /** Doram Chargen **/
 #charcreate_v4 .doram .chargen_doram canvas {
 	position: absolute;
 	top: 40px;
 	left: 25px;
+	z-index: 2;
 }
 
 /* Style */
 #charcreate_v4 #style {
-	position: relative;
+	position: absolute;
 	left: 395px;
 	top: 30px;
 	width: 200px;
-	height: 270px;
+	height: 320px;
+}
+#charcreate_v4 .style_title {
+	position: absolute;
+	top: 0;
+	left: 36px;
+	width: 120px;
+	height: 22px;
+	z-index: 5;
+	box-sizing: border-box;
+	padding: 0 6px;
+	line-height: 22px;
+	text-align: center;
+	color: #f7fbff;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 1px;
+	text-shadow: 0 1px 2px rgba(0, 20, 50, 0.85);
+	/* Cover BMP-baked STYLE / ST LE ghost */
+	background: rgba(28, 72, 128, 0.96);
+	border-radius: 2px;
 }
 #charcreate_v4 .gender_button {
 	display: none;
@@ -110,74 +177,86 @@
 
 #charcreate_v4 #style .gender {
 	position: absolute;
-	top: 25px;
+	top: 28px;
 	left: 40px;
 	height: 26px;
 	width: 130px;
+	z-index: 3;
 }
 #charcreate_v4 #male_container {
-	position: relative;
+	position: absolute;
+	left: 0;
+	top: 0;
 	height: 25px;
 	width: 62px;
-	white-space: nowrap;
+	background-repeat: no-repeat;
+	background-size: 62px 25px;
 }
 #charcreate_v4 #female_container {
-	position: relative;
+	position: absolute;
 	left: 61px;
-	top: -25px;
+	top: 0;
 	height: 25px;
 	width: 62px;
-	white-space: nowrap;
+	background-repeat: no-repeat;
+	background-size: 62px 25px;
 }
 
-#charcreate_v4 #style .male_button {
-	position: absolute;
-	height: 25px;
-	width: 62px;
-}
+#charcreate_v4 #style .male_button,
 #charcreate_v4 #style .female_button {
 	position: absolute;
+	left: 0;
+	top: 0;
 	height: 25px;
 	width: 62px;
 }
 
 /** Style Model **/
 #charcreate_v4 .model {
-	position: relative;
-	top: 115px;
+	position: absolute;
+	top: 95px;
 	left: 55px;
 	width: 100px;
+	height: 120px;
 }
 #charcreate_v4 .model canvas {
-	position: relative;
-	top: -5px;
+	position: absolute;
+	top: 0;
 	left: 17px;
 }
 
 /** Buttons **/
 #charcreate_v4 #style .rot_left {
-	position: relative;
-	top: 40px;
+	position: absolute;
+	top: 140px;
 	left: 30px;
 	height: 23px;
 	width: 22px;
+	z-index: 3;
 }
 #charcreate_v4 #style .rot_right {
-	position: relative;
-	top: 40px;
-	left: 130px;
+	position: absolute;
+	top: 140px;
+	left: 148px;
 	height: 23px;
 	width: 22px;
+	z-index: 3;
 }
 
 /** Char Name **/
 #charcreate_v4 #char_name {
-	position: relative;
-	height: 20px;
-	width: 140px;
-	top: 115px;
-	left: -20px;
-	border-width: 0px;
+	position: absolute;
+	height: 22px;
+	width: 148px;
+	top: 250px;
+	left: 26px;
+	border: 1px solid #2a5080;
+	border-radius: 2px;
+	background: rgba(255, 255, 255, 0.94);
+	color: #1a3258;
+	padding: 2px 6px;
+	box-sizing: border-box;
+	z-index: 3;
 }
 
 /** Hair Settings **/
@@ -185,29 +264,45 @@
 	position: absolute;
 	top: 35px;
 	left: 600px;
-	height: 380px;
+	height: 340px;
 	width: 185px;
+	z-index: 2;
 }
 
 #charcreate_v4 .hair_style_title {
-	position: relative;
-	height: 15px;
-	width: 60px;
-	top: 10px;
-	left: 10px;
+	position: absolute;
+	top: 2px;
+	left: 8px;
+	height: 20px;
+	width: 110px;
+	z-index: 5;
+	box-sizing: border-box;
+	padding: 0 6px;
+	line-height: 20px;
+	color: #f7fbff;
+	font-size: 12px;
+	font-weight: 700;
+	text-shadow: 0 1px 2px rgba(0, 20, 50, 0.85);
+	/* Cover BMP-baked HAIR / HAIR STYLE ghost */
+	background: rgba(28, 72, 128, 0.96);
+	border-radius: 2px;
 }
 
 #charcreate_v4 .hairstyle_row {
 	position: relative;
 	display: flex;
-	top: 10px;
-	left: 10px;
+	margin: 0;
+	padding: 0;
 }
 #charcreate_v4 .styleCol {
 	position: relative;
 	width: 36px;
 	height: 37px;
-	white-space: nowrap;
+	margin: 0 1px 1px 0;
+	background-repeat: no-repeat;
+	background-size: 36px 37px;
+	background-color: rgba(12, 36, 72, 0.35);
+	box-sizing: border-box;
 }
 
 #charcreate_v4 .hstyle {
@@ -215,36 +310,66 @@
 }
 #charcreate_v4 .hstyle_button {
 	position: absolute;
+	left: 0;
+	top: 0;
 	width: 36px;
 	height: 37px;
 	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 36px 37px;
 	background-color: transparent;
+	z-index: 2;
+	overflow: hidden;
+}
+#charcreate_v4 .hstyle_button canvas.hair-preview {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 36px;
+	height: 37px;
+	pointer-events: none;
+	z-index: 3;
 }
 #charcreate_v4 .hair-styles {
-	position: relative;
-	width: 100px;
-	height: 100px;
+	position: absolute;
+	top: 26px;
+	left: 0;
+	width: 160px;
+	height: 230px;
+	overflow: visible;
 }
 #charcreate_v4 .hair-style {
 	position: absolute;
-	height: 225px;
-	top: 12px;
-	left: -2px;
+	top: 0;
+	left: 0;
+	width: 160px;
+	height: 230px;
 	display: none;
 }
 
 #charcreate_v4 .hair_color_title {
-	position: relative;
+	position: absolute;
+	top: 262px;
+	left: 8px;
 	height: 20px;
-	width: 60px;
-	top: 230px;
-	left: 10px;
+	width: 110px;
+	z-index: 5;
+	box-sizing: border-box;
+	padding: 0 6px;
+	line-height: 20px;
+	color: #f7fbff;
+	font-size: 12px;
+	font-weight: 700;
+	text-shadow: 0 1px 2px rgba(0, 20, 50, 0.85);
+	background: rgba(28, 72, 128, 0.96);
+	border-radius: 2px;
 }
 
 #charcreate_v4 .hair_colors {
 	position: absolute;
-	top: 265px;
-	left: 15px;
+	top: 288px;
+	left: 10px;
+	width: 160px;
 }
 #charcreate_v4 .haircolor_row {
 	position: relative;
@@ -254,51 +379,67 @@
 	position: relative;
 	width: 22px;
 	height: 22px;
-	white-space: nowrap;
-	margin: 2px 2px;
+	margin: 2px;
+	background-repeat: no-repeat;
+	background-size: 22px 22px;
 }
 #charcreate_v4 .hcolor {
 	display: none;
 }
 #charcreate_v4 .hcolor_button {
 	position: absolute;
+	left: 0;
+	top: 0;
 	width: 22px;
 	height: 22px;
 }
 
 #charcreate_v4 .btns {
 	position: absolute;
-	bottom: 4px;
+	left: 0;
+	bottom: 10px;
 	width: 100%;
-	height: 20px;
+	height: 30px;
+	z-index: 8;
 }
 #charcreate_v4 .btn {
 	position: absolute;
-	width: 42px;
-	height: 20px;
+	box-sizing: border-box;
 }
 #charcreate_v4 .make {
-	right: 25px;
-	top: -20px;
+	right: 24px;
+	top: 0;
 	height: 27px;
 	width: 152px;
-}
-#charcreate_v4 .cancel {
-	right: -15px;
-	top: -389px;
 }
 #charcreate_v4 .return {
+	left: 24px;
+	top: 0;
 	width: 152px;
 	height: 27px;
-	top: -20px;
-	left: 25px;
+}
+#charcreate_v4 .cancel {
+	right: 8px;
+	top: -392px;
+	width: 22px;
+	height: 22px;
 }
 
 #charcreate_v4 .btns ui-button {
 	background-repeat: no-repeat;
-	background-color: transparent;
+	background-position: center;
+	background-size: 100% 100%;
 	border: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	color: #16345c;
+	font-size: 12px;
+	font-weight: 700;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+#charcreate_v4 .btns ui-button.cancel {
+	font-size: 0;
+	color: transparent;
+	text-shadow: none;
 }
