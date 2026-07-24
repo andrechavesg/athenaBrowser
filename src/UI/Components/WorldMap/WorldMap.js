@@ -48,6 +48,9 @@ let _partyMembersByMap = {};
 
 let _hoveredSection = null;
 
+/** @type {string|null} map id highlighted as Navigation destination */
+let _navigationTargetMap = null;
+
 // Sizing params
 const C_TITLEBARHEIGHT = 17;
 const C_BASEWIDTH = 1280;
@@ -415,6 +418,9 @@ function createWorldMapView(map, imgData) {
 	worldmap.appendChild(mapView);
 	container.innerHTML = '';
 	container.appendChild(worldmap);
+
+	// Keep Navigation destination highlight across map view rebuilds
+	WorldMap.refreshNavigationTarget();
 }
 
 /**
@@ -609,6 +615,42 @@ WorldMap.onShortCut = function onShortCut(key) {
  */
 WorldMap.onResize = function () {
 	resizeMap();
+};
+
+/**
+ * Highlight the Navigation destination map on the world map.
+ * Pass null/empty to clear.
+ *
+ * @param {string|null} mapName
+ */
+WorldMap.setNavigationTarget = function setNavigationTarget(mapName) {
+	const root = WorldMap.getRoot();
+	if (!root) {
+		_navigationTargetMap = mapName ? String(mapName).replace(/\.gat$/i, '').toLowerCase() : null;
+		return;
+	}
+
+	root.querySelectorAll('.worldmap .section.navitarget').forEach(el => el.classList.remove('navitarget'));
+
+	if (!mapName) {
+		_navigationTargetMap = null;
+		return;
+	}
+
+	_navigationTargetMap = String(mapName).replace(/\.gat$/i, '').toLowerCase();
+	const el = root.querySelector('.worldmap .section#' + CSS.escape(_navigationTargetMap));
+	if (el) {
+		el.classList.add('navitarget');
+	}
+};
+
+/**
+ * Re-apply navigation target highlight after the world map view is rebuilt.
+ */
+WorldMap.refreshNavigationTarget = function refreshNavigationTarget() {
+	if (_navigationTargetMap) {
+		WorldMap.setNavigationTarget(_navigationTargetMap);
+	}
 };
 
 /**

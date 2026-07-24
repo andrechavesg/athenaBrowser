@@ -18,9 +18,20 @@ import Altitude from 'Renderer/Map/Altitude.js';
 import Session from 'Engine/SessionStorage.js';
 import Client from 'Core/Client.js';
 import DB from 'DB/DBManager.js';
+import EffectManager from 'Renderer/EffectManager.js';
+import FlatColorTile from 'Renderer/Effects/FlatColorTile.js';
 import htmlText from './Navigation.html?raw';
 import cssText from './Navigation.css?raw';
 import MapPathFinder from './MapPathFinder.js';
+
+/** Effect owner ids for Navigation ground GPS overlays */
+const NAVI_PATH_AID = 'NavigationPath';
+const NAVI_DEST_AID = 'NavigationDest';
+const NAVI_MINIMAP_KEY = 'navigation-target';
+
+/** Cyan path tiles + red destination on the floor */
+const PathTile = FlatColorTile('navi_path', { r: 0.0, g: 0.95, b: 1.0, a: 0.5 });
+const DestTile = FlatColorTile('navi_dest', { r: 1.0, g: 0.2, b: 0.2, a: 0.75 });
 
 /**
  * Create Navigation component
@@ -140,8 +151,207 @@ let _originalColor = '';
 let _documentClickHandler = null;
 
 /**
+ * @var {boolean} panel collapsed to titlebar only
+ */
+let _collapsed = false;
+
+/**
+ * @var {number} host height before collapse
+ */
+let _expandedHeight = 0;
+
+/**
+ * @var {string} signature of last floor path drawn (avoid rebuild flicker)
+ */
+let _floorPathSignature = '';
+
+/**
  * Local utility functions
  */
+
+/**
+ * Resolve MiniMap UI (versioned controller)
+ */
+function getMiniMapUI() {
+	try {
+		const ctrl = UIManager.getComponent('MiniMap');
+		return ctrl && typeof ctrl.getUI === 'function' ? ctrl.getUI() : null;
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Resolve WorldMap component without a static import cycle
+ */
+function getWorldMap() {
+	try {
+		return UIManager.getComponent('WorldMap');
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Clear ground GPS overlays
+ */
+function clearFloorPath() {
+	EffectManager.remove(null, NAVI_PATH_AID);
+	EffectManager.remove(null, NAVI_DEST_AID);
+	_floorPathSignature = '';
+}
+
+/**
+ * Draw path cells + destination on the 3D floor (same-map route only).
+ *
+ * @param {Array} path
+ * @param {Object|null} dest
+ */
+function updateFloorPath(path, dest) {
+	const currentMap = getCurrentMap();
+	const destOnMap = dest && normalizeMapName(dest.map) === currentMap;
+	const points = Array.isArray(path) ? path : [];
+
+	// Signature: dest + sampled path endpoints / length — skip rebuild if unchanged
+	const sigParts = [
+		currentMap,
+		destOnMap ? `${dest.x},${dest.y}` : '',
+		String(points.length),
+		points.length ? `${points[0].x},${points[0].y}` : '',
+		points.length ? `${points[points.length - 1].x},${points[points.length - 1].y}` : ''
+	];
+	const signature = sigParts.join('|');
+	if (signature === _floorPathSignature) {
+		return;
+	}
+
+	clearFloorPath();
+	_floorPathSignature = signature;
+
+	if (!points.length && !destOnMap) {
+		return;
+	}
+
+	// Subsample long paths for performance (keep start/end/warps)
+	const maxTiles = 100;
+	const step = points.length > maxTiles ? Math.ceil(points.length / maxTiles) : 1;
+	const tick = Renderer.tick;
+
+	for (let i = 0; i < points.length; i += step) {
+		const point = points[i];
+		if (!point || point.isWarp) {
+			continue;
+		}
+		const x = point.x;
+		const y = point.y;
+		const position = [x, y, Altitude.getCellHeight(x, y)];
+		EffectManager.add(new PathTile(position, tick), {
+			effect: PathTile,
+			Inst: {
+				effectID: 900001,
+				duplicateID: i,
+				startTick: tick,
+				persistent: true,
+				position: position,
+				renderBeforeEntities: true
+			},
+			Init: {
+				ownerAID: NAVI_PATH_AID,
+				position: position,
+				persistent: true,
+				startTick: tick
+			}
+		});
+	}
+
+	// Always mark warps + final cell
+	for (let i = 0; i < points.length; i++) {
+		const point = points[i];
+		if (!point || !point.isWarp) {
+			continue;
+		}
+		const x = point.x;
+		const y = point.y;
+		const position = [x, y, Altitude.getCellHeight(x, y)];
+		EffectManager.add(new PathTile(position, tick), {
+			effect: PathTile,
+			Inst: {
+				effectID: 900002,
+				duplicateID: i,
+				startTick: tick,
+				persistent: true,
+				position: position,
+				renderBeforeEntities: true
+			},
+			Init: {
+				ownerAID: NAVI_PATH_AID,
+				position: position,
+				persistent: true,
+				startTick: tick
+			}
+		});
+	}
+
+	if (destOnMap) {
+		const x = dest.x;
+		const y = dest.y;
+		const position = [x, y, Altitude.getCellHeight(x, y)];
+		EffectManager.add(new DestTile(position, tick), {
+			effect: DestTile,
+			Inst: {
+				effectID: 900003,
+				duplicateID: 0,
+				startTick: tick,
+				persistent: true,
+				position: position,
+				renderBeforeEntities: true
+			},
+			Init: {
+				ownerAID: NAVI_DEST_AID,
+				position: position,
+				persistent: true,
+				startTick: tick
+			}
+		});
+	}
+}
+
+/**
+ * Sync MiniMap marker + WorldMap section highlight with Navigation target
+ */
+function updateMapMarkers() {
+	const mini = getMiniMapUI();
+	if (mini && typeof mini.removeNpcMark === 'function') {
+		mini.removeNpcMark(NAVI_MINIMAP_KEY);
+	}
+
+	const worldMap = getWorldMap();
+
+	if (!_finalTargetData) {
+		if (worldMap && typeof worldMap.setNavigationTarget === 'function') {
+			worldMap.setNavigationTarget(null);
+		}
+		return;
+	}
+
+	if (worldMap && typeof worldMap.setNavigationTarget === 'function') {
+		worldMap.setNavigationTarget(_finalTargetData.map);
+	}
+
+	// MiniMap: mark next hop on current map (or final dest when same map)
+	const currentMap = getCurrentMap();
+	const mark =
+		_targetData && normalizeMapName(_targetData.map || currentMap) === currentMap
+			? _targetData
+			: normalizeMapName(_finalTargetData.map) === currentMap
+				? _finalTargetData
+				: null;
+
+	if (mark && mini && typeof mini.addNpcMark === 'function') {
+		// Cyan cross; Infinity so it does not expire while navigating
+		mini.addNpcMark(NAVI_MINIMAP_KEY, mark.x, mark.y, 0x00ffff, Infinity);
+	}
+}
 
 /**
  * Normalize a map name (remove .gat extension)
@@ -268,10 +478,14 @@ function initializePathFindingWorker() {
 							this.updateTargetText();
 							this.setTargetCoordinatesBlinking(false);
 							this.setLocationTitle(mapName, _finalTargetData.map, _finalTargetData.displayName);
+							updateFloorPath(_path, _targetData || _finalTargetData);
+							updateMapMarkers();
 						} else {
 							this.updateTargetText(true);
 							this.setTargetCoordinatesBlinking(false);
 							this.setLocationTitle(mapName, null);
+							clearFloorPath();
+							updateMapMarkers();
 						}
 					}
 					break;
@@ -364,6 +578,11 @@ Navigation.init = function init() {
 
 	// Bind events
 	root.querySelector('.close').addEventListener('click', () => this.hide());
+	const miniBtn = root.querySelector('.mini');
+	if (miniBtn) {
+		miniBtn.addEventListener('mousedown', e => e.stopImmediatePropagation());
+		miniBtn.addEventListener('click', () => this.toggleCollapsed());
+	}
 	root.querySelector('.search-button').addEventListener('click', () => this.onSearch());
 
 	const searchInput = root.querySelector('.search-input');
@@ -377,13 +596,28 @@ Navigation.init = function init() {
 	searchInput.addEventListener('focus', () => {
 		const resultsContainer = root.querySelector('.search-results');
 		if (resultsContainer && resultsContainer.children.length > 0) {
-			resultsContainer.style.display = '';
+			resultsContainer.style.display = 'block';
 		}
 	});
 
-	// Hide search results when clicking outside (on document level)
+	// Hide search results when clicking outside (on document level).
+	// GUIComponent uses Shadow DOM: light-DOM e.target is the host, so
+	// closest('.search-button') never matches — use composedPath instead.
+	// ragnarok-navigation-search-shadow-v1
 	_documentClickHandler = e => {
-		if (!e.target.closest('.search-results, .search-input, .search-button, .search-type')) {
+		const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target];
+		const insideSearch = path.some(node => {
+			if (!node || !node.classList) {
+				return false;
+			}
+			return (
+				node.classList.contains('search-results') ||
+				node.classList.contains('search-input') ||
+				node.classList.contains('search-button') ||
+				node.classList.contains('search-type')
+			);
+		});
+		if (!insideSearch) {
 			const resultsContainer = root.querySelector('.search-results');
 			if (resultsContainer) {
 				resultsContainer.style.display = 'none';
@@ -442,7 +676,7 @@ Navigation.onAppend = function onAppend() {
  * Once removed from DOM
  */
 Navigation.onRemove = function onRemove() {
-	this.clearPath();
+	this.clear();
 	terminatePathFindingWorker();
 
 	// Clean up document-level event listener
@@ -489,7 +723,7 @@ Navigation.displaySearchResults = function displaySearchResults(results) {
 	// If no results, show a message
 	if (results.length === 0) {
 		resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
-		resultsContainer.style.display = '';
+		resultsContainer.style.display = 'block';
 		return;
 	}
 
@@ -523,7 +757,7 @@ Navigation.displaySearchResults = function displaySearchResults(results) {
 	}
 
 	// Show the results container
-	resultsContainer.style.display = '';
+	resultsContainer.style.display = 'block';
 };
 
 /**
@@ -705,6 +939,8 @@ Navigation.clear = function clear() {
 	_finalTargetData = null;
 	_targetData = null;
 	_isMapClickTarget = false;
+	clearFloorPath();
+	updateMapMarkers();
 
 	// Hide the target coordinates display
 	const root = Navigation.getRoot();
@@ -724,6 +960,7 @@ Navigation.clearPath = function clearPath() {
 	_path = [];
 	_lastPathUpdate = 0;
 	_pathUpdateLock = false;
+	clearFloorPath();
 };
 
 /**
@@ -742,20 +979,7 @@ Navigation.addMarker = function addMarker(x, y, color, label) {
  * Render the map and markers
  */
 Navigation.renderCanvas = function renderCanvas(tick) {
-	const hostDisplay = this._host ? getComputedStyle(this._host).display : 'none';
-	if (hostDisplay === 'none') {
-		return;
-	}
-
-	const width = 280;
-	const height = 230;
-	const ctx = _ctx;
-
-	if (!ctx) {
-		return;
-	}
-
-	// Check if player position has changed
+	// Keep route / floor GPS fresh even when the panel is hidden or collapsed
 	const currentMap = getCurrentMap();
 	const currentPos = getPlayerPosition();
 	if (_finalTargetData && tick - _lastPathUpdate > _pathUpdateThrottle && !_pathUpdateLock) {
@@ -769,6 +993,19 @@ Navigation.renderCanvas = function renderCanvas(tick) {
 			displayName: _finalTargetData.displayName
 		});
 		_lastPathUpdate = tick;
+	}
+
+	const hostDisplay = this._host ? getComputedStyle(this._host).display : 'none';
+	if (hostDisplay === 'none' || _collapsed) {
+		return;
+	}
+
+	const width = 280;
+	const height = 230;
+	const ctx = _ctx;
+
+	if (!ctx) {
+		return;
 	}
 
 	// Clear canvas
@@ -1130,22 +1367,59 @@ Navigation.toggle = function toggle() {
 };
 
 /**
+ * Collapse / expand the panel to titlebar only (keeps floor GPS + markers)
+ */
+Navigation.toggleCollapsed = function toggleCollapsed() {
+	const root = Navigation.getRoot();
+	if (!root || !this._host) {
+		return;
+	}
+
+	if (_collapsed) {
+		root.classList.remove('collapsed');
+		if (_expandedHeight > 0) {
+			this._host.style.height = `${_expandedHeight}px`;
+		} else {
+			this._host.style.height = '';
+		}
+		_collapsed = false;
+	} else {
+		_expandedHeight = this._host.getBoundingClientRect().height || 300;
+		root.classList.add('collapsed');
+		this._host.style.height = '17px';
+		_collapsed = true;
+	}
+};
+
+/**
  * Show the navigation window
  */
 Navigation.show = function show() {
 	const root = Navigation.getRoot();
 
-	this.clearPath();
+	// Expand if collapsed when reopening via show
+	if (_collapsed) {
+		root.classList.remove('collapsed');
+		if (_expandedHeight > 0) {
+			this._host.style.height = `${_expandedHeight}px`;
+		} else {
+			this._host.style.height = '';
+		}
+		_collapsed = false;
+	}
+
 	initializePathFindingWorker();
 
-	// Hide coordinate displays initially
+	// Hide coordinate displays initially (unless we already have a target)
 	const mouseInfo = root.querySelector('.mouse-info');
 	if (mouseInfo) {
 		mouseInfo.style.display = 'none';
 	}
-	const targetInfo = root.querySelector('.target-info');
-	if (targetInfo) {
-		targetInfo.style.display = 'none';
+	if (!_finalTargetData) {
+		const targetInfo = root.querySelector('.target-info');
+		if (targetInfo) {
+			targetInfo.style.display = 'none';
+		}
 	}
 
 	const mapName = getCurrentMap();
@@ -1174,11 +1448,14 @@ Navigation.show = function show() {
 };
 
 /**
- * Hide the navigation window
+ * Hide the navigation window (keeps active route / floor GPS)
  */
 Navigation.hide = function hide() {
 	this.ui.hide();
-	terminatePathFindingWorker();
+	// Keep pathfinding alive while a destination is set so floor GPS stays fresh
+	if (!_finalTargetData) {
+		terminatePathFindingWorker();
+	}
 };
 
 Navigation.onKeyDown = function onKeyDown(event) {
@@ -1296,6 +1573,9 @@ Navigation.navigateTo = function navigateTo(options) {
 		displayName: displayName
 	};
 
+	// Highlight destination on world map immediately
+	updateMapMarkers();
+
 	// Get warp types based on Services checkbox
 	let warpTypes = [200, 201];
 	const servicesToggle = root.querySelector('.services-toggle');
@@ -1326,6 +1606,11 @@ Navigation.navigateTo = function navigateTo(options) {
 					map: target.map,
 					displayName: displayName
 				};
+				updateMapMarkers();
+				// Destination marker on floor ASAP (path tiles follow when worker returns)
+				if (normalizeMapName(target.map) === getCurrentMap()) {
+					updateFloorPath(_path, _targetData);
+				}
 				this.findPath(options.startX, options.startY, _targetData.x, _targetData.y);
 			} else {
 				this.clear();

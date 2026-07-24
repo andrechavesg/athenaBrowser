@@ -109,7 +109,8 @@
 #WorldMap .worldmap .section:hover,
 #WorldMap .worldmap .section.allmapvisible,
 #WorldMap .worldmap .section.currentmap,
-#WorldMap .worldmap .section.membersonmap {
+#WorldMap .worldmap .section.membersonmap,
+#WorldMap .worldmap .section.navitarget {
 	border: 1px solid #dddddd7a;
 }
 
@@ -123,6 +124,15 @@
 
 #WorldMap .worldmap .section.currentmap {
 	background-color: rgba(255, 128, 0, 0.5);
+}
+
+#WorldMap .worldmap .section.navitarget:not(.currentmap) {
+	background-color: rgba(255, 64, 64, 0.55);
+	box-shadow: 0 0 0 2px rgba(255, 80, 80, 0.85);
+}
+
+#WorldMap .worldmap .section.navitarget.currentmap {
+	box-shadow: 0 0 0 2px rgba(255, 80, 80, 0.85);
 }
 
 #WorldMap .worldmap .section .mapname {
