@@ -320,3 +320,233 @@
 	-webkit-text-stroke: 0.6px #2f2f2f;
 	font-weight: 1000;
 }
+
+/* === SKILLTREE-MODERN-V1 === */
+:host {
+	width: auto;
+	height: auto;
+}
+
+#SkillList {
+	background:
+		radial-gradient(ellipse at 40% 0%, rgba(70, 55, 35, 0.35) 0%, transparent 55%),
+		linear-gradient(180deg, #1a1612 0%, #0e0c0a 100%);
+	border: 1px solid rgba(180, 150, 90, 0.45);
+	box-shadow:
+		0 10px 28px rgba(0, 0, 0, 0.55),
+		inset 0 0 0 1px rgba(255, 230, 180, 0.06);
+	color: #f0e6d2;
+}
+
+#SkillList .border {
+	border: 1px solid rgba(90, 70, 40, 0.65);
+	background: transparent;
+}
+
+#SkillList .titlebar {
+	height: 22px;
+	background: linear-gradient(180deg, #f0e6d0 0%, #d4c4a0 100%);
+	border-bottom: 1px solid rgba(60, 45, 25, 0.4);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+	border-radius: 4px 4px 0 0;
+}
+
+#SkillList .titlebar .text {
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+	color: #2a2218;
+	width: auto;
+	min-width: 70px;
+	font-size: 12px;
+}
+
+#SkillList .titlebar .right {
+	color: #2a2218;
+	font-size: 11px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 2px;
+}
+
+#SkillList .skill-info-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+}
+
+#SkillList .panel {
+	background:
+		linear-gradient(180deg, rgba(42, 34, 24, 0.92) 0%, rgba(22, 18, 14, 0.96) 100%);
+}
+
+#SkillList .content,
+#SkillList .tab-content {
+	border-top: 1px solid rgba(180, 150, 90, 0.22);
+	background: rgba(12, 10, 8, 0.35);
+}
+
+#SkillList .tab-label,
+#SkillList .tab-label-mini {
+	background: linear-gradient(180deg, #ebe0c8 0%, #c9b890 100%);
+	border-color: rgba(90, 70, 40, 0.55);
+	color: #2a2218;
+	font-weight: 700;
+	font-size: 10px;
+	letter-spacing: 0.04em;
+}
+
+#SkillList .tab-switch:checked + .tab-label,
+#SkillList .tab-switch-mini:checked + .tab-label-mini {
+	background: linear-gradient(180deg, #fff6df 0%, #e2cfa0 100%);
+	box-shadow: 0 0 0 1px rgba(180, 140, 60, 0.35);
+}
+
+#SkillList .contentbig {
+	position: relative;
+}
+
+#SkillList #positionSkills1,
+#SkillList #positionSkills2,
+#SkillList #positionSkills3,
+#SkillList #positionSkills4,
+#SkillList #etcBIG5 {
+	position: relative;
+	min-height: 360px;
+}
+
+#SkillList .skill-dep-links {
+	position: absolute;
+	left: 0;
+	top: 0;
+	pointer-events: none;
+	z-index: 0;
+	overflow: visible;
+}
+
+#SkillList .skill-dep-links .dep-line {
+	fill: none;
+	stroke: rgba(190, 150, 70, 0.42);
+	stroke-width: 2;
+	stroke-linecap: round;
+	transition:
+		stroke 120ms ease,
+		stroke-width 120ms ease,
+		opacity 120ms ease;
+}
+
+#SkillList .skill-dep-links .dep-line.met {
+	stroke: rgba(90, 180, 120, 0.55);
+}
+
+#SkillList .skill-dep-links .dep-line.unmet {
+	stroke: rgba(160, 130, 80, 0.38);
+	stroke-dasharray: 4 3;
+}
+
+#SkillList .skill-dep-links .dep-line.highlight {
+	stroke: rgba(255, 140, 180, 0.95);
+	stroke-width: 2.6;
+	stroke-dasharray: none;
+	filter: drop-shadow(0 0 3px rgba(255, 120, 160, 0.55));
+}
+
+#SkillList .skill-dep-links .dep-arrow-head {
+	fill: rgba(210, 170, 90, 0.75);
+}
+
+#SkillList .skill-dep-links .dep-line.met + .dep-arrow-head,
+#SkillList .skill-dep-links marker .dep-arrow-head {
+	fill: rgba(210, 170, 90, 0.8);
+}
+
+#SkillList .skillRow {
+	position: relative;
+	z-index: 1;
+	padding-left: 36px;
+}
+
+#SkillList .skillCol {
+	margin: 18px 14px;
+	border: 1px solid rgba(180, 150, 90, 0.28);
+	border-radius: 6px;
+	width: 32px;
+	height: 32px;
+	background: rgba(30, 24, 16, 0.55);
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+#SkillList .skillCol:empty {
+	opacity: 0.22;
+	border-style: dashed;
+	background: transparent;
+	box-shadow: none;
+}
+
+#SkillList .skillCol.upgradable {
+	background: rgba(70, 100, 180, 0.35);
+	border-color: rgba(140, 175, 255, 0.65);
+	box-shadow:
+		0 0 0 1px rgba(120, 160, 255, 0.25),
+		inset 0 0 8px rgba(100, 140, 255, 0.2);
+}
+
+#SkillList .skillCol.learned {
+	border-color: rgba(120, 190, 130, 0.55);
+}
+
+#SkillList .skillCol.needleSkill {
+	background: rgba(220, 90, 130, 0.35) !important;
+	border-color: rgba(255, 140, 180, 0.85) !important;
+	box-shadow: 0 0 10px rgba(255, 120, 160, 0.35);
+}
+
+#SkillList .skillCol .skill {
+	top: -18px;
+}
+
+#SkillList .skillCol .name,
+#SkillList .skillCol .selectable {
+	width: 78px;
+	left: -24px;
+	color: #f2e8d4;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+	font-size: 10px;
+	line-height: 11px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#SkillList .skillCol .icon img {
+	border-radius: 3px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+#SkillList .disabled .icon,
+#SkillList .disabled .name {
+	opacity: 0.42;
+	filter: grayscale(0.35);
+}
+
+#SkillList .footer {
+	background: linear-gradient(180deg, #e8dcc0 0%, #cbb990 100%);
+	color: #2a2218;
+	border-radius: 0 0 4px 4px;
+}
+
+#SkillList .footer .text {
+	font-weight: 700;
+	font-size: 11px;
+}
+
+#SkillList .upgradable {
+	background: transparent;
+}

@@ -11,11 +11,14 @@
 				<ui-text class="text" msgid="283">Skill Tree</ui-text>
 			</div>
 			<div class="right">
-				<input type="checkbox" class="view_skill_info" />view skill info
+				<label class="skill-info-label"
+					><input type="checkbox" class="view_skill_info" /> skill info</label
+				>
 				<ui-button
 					class="base mini"
 					bg="basic_interface/sys_mini_off.bmp"
 					hover="basic_interface/sys_mini_on.bmp"
+					title="Toggle list / tree view"
 				></ui-button>
 				<ui-button
 					class="base close"
@@ -27,7 +30,7 @@
 		</div>
 
 		<div class="panel">
-			<div class="content" style="display: block; width: 256px; height: 320px">
+			<div class="content" style="display: none; width: 256px; height: 320px">
 				<!-- Just to get reference, will be removed -->
 				<ui-button
 					class="btn levelup"

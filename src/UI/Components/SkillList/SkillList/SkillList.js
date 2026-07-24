@@ -37,6 +37,7 @@ function _isNumeric(val) {
 const SkillList = new GUIComponent('SkillList', cssText);
 SkillList.render = () => htmlText;
 
+// SKILLTREE-MODERN-V1 — default to graphical tree (not flat mini list)
 const _preferences = Preferences.get(
 	'SkillList',
 	{
@@ -45,10 +46,10 @@ const _preferences = Preferences.get(
 		width: 8,
 		height: 8,
 		show: false,
-		mini: true,
-		skillInfo: false
+		mini: false,
+		skillInfo: true
 	},
-	1.0
+	2.0
 );
 
 const _list = [];
@@ -75,9 +76,13 @@ SkillList.init = function init() {
 	root.querySelector('.titlebar .close')?.addEventListener('click', () => {
 		this.ui.hide();
 	});
-	root.querySelector('.titlebar .mini')?.addEventListener('click', () => {
-		onMini(this);
-	});
+	const miniBtn = root.querySelector('.titlebar .mini');
+	if (miniBtn) {
+		miniBtn.setAttribute('title', 'Toggle list / tree view');
+		miniBtn.addEventListener('click', () => {
+			onMini(this);
+		});
+	}
 	root.querySelector('.view_skill_info')?.addEventListener('change', function () {
 		_preferences.skillInfo = !!this.checked;
 		_preferences.save();
@@ -185,6 +190,7 @@ SkillList.init = function init() {
 			}
 			root.querySelectorAll('.needleSkill').forEach(el => el.classList.remove('needleSkill'));
 			root.querySelectorAll('.counterSkill').forEach(el => el.remove());
+			clearDependencyLinkHighlight(root);
 		}
 	});
 
@@ -256,6 +262,14 @@ SkillList.init = function init() {
 	});
 
 	this.draggable('.titlebar');
+
+	root.querySelectorAll('.tab-switch').forEach(radio => {
+		radio.addEventListener('change', () => {
+			if (!_preferences.mini) {
+				requestAnimationFrame(() => renderDependencyLinks(root));
+			}
+		});
+	});
 
 	Client.loadFile(`${DB.INTERFACE_PATH}basic_interface/arw_right.bmp`, data => {
 		_rArrow = `url(${data})`;
@@ -371,9 +385,14 @@ SkillList.setSkills = function setSkills(skills) {
 	}
 
 	onResetChoice(this);
+	requestAnimationFrame(() => renderDependencyLinks(root));
 };
 
 function createSkillDependencyTree() {
+	for (const key of Object.keys(skillDependencyTree)) {
+		delete skillDependencyTree[key];
+	}
+
 	skillPosition.forEach((items, list) => {
 		Object.entries(items).forEach(([skid, pos]) => {
 			if (!_isNumeric(skid)) {
@@ -398,6 +417,173 @@ function createSkillDependencyTree() {
 				console.error('Something wrong with this skill: %d', skid);
 			}
 		});
+	});
+}
+
+function _skillTreeContainerSelector(list) {
+	return list === 5 ? '#etcBIG5' : `#positionSkills${list}`;
+}
+
+function _cellCenterInContainer(container, position) {
+	const box = container.querySelector(`.s${position}`);
+	if (!box) {
+		return null;
+	}
+	const cRect = container.getBoundingClientRect();
+	const bRect = box.getBoundingClientRect();
+	if (!bRect.width && !bRect.height) {
+		return null;
+	}
+	return {
+		x: bRect.left - cRect.left + container.scrollLeft + bRect.width / 2,
+		y: bRect.top - cRect.top + container.scrollTop + bRect.height / 2
+	};
+}
+
+function _depLinePath(x1, y1, x2, y2) {
+	const midY = (y1 + y2) / 2;
+	return `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+}
+
+function _isDependencyMet(needId, needLevel) {
+	const have = hasSkills?.[needId]?.level ?? 0;
+	return have >= (needLevel || 1);
+}
+
+/**
+ * Draw prerequisite connectors on each job-tab skill grid (SkillTreeView layout).
+ * Lines only span skills on the same tab; hover still highlights cross-tab needs.
+ */
+function renderDependencyLinks(root) {
+	if (!root) {
+		return;
+	}
+
+	for (let list = 1; list <= 5; list++) {
+		const container = root.querySelector(_skillTreeContainerSelector(list));
+		if (!container) {
+			continue;
+		}
+
+		container.querySelectorAll('svg.skill-dep-links').forEach(el => el.remove());
+
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const svg = document.createElementNS(svgNS, 'svg');
+		svg.setAttribute('class', 'skill-dep-links');
+		svg.setAttribute('aria-hidden', 'true');
+
+		const width = Math.max(container.scrollWidth, container.clientWidth, 1);
+		const height = Math.max(container.scrollHeight, container.clientHeight, 1);
+		svg.setAttribute('width', String(width));
+		svg.setAttribute('height', String(height));
+		svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+		const defs = document.createElementNS(svgNS, 'defs');
+		const marker = document.createElementNS(svgNS, 'marker');
+		marker.setAttribute('id', `skill-dep-arrow-${list}`);
+		marker.setAttribute('viewBox', '0 0 10 10');
+		marker.setAttribute('refX', '8');
+		marker.setAttribute('refY', '5');
+		marker.setAttribute('markerWidth', '6');
+		marker.setAttribute('markerHeight', '6');
+		marker.setAttribute('orient', 'auto-start-reverse');
+		const arrow = document.createElementNS(svgNS, 'path');
+		arrow.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+		arrow.setAttribute('class', 'dep-arrow-head');
+		marker.appendChild(arrow);
+		defs.appendChild(marker);
+		svg.appendChild(defs);
+
+		let linkCount = 0;
+		skillDependencyTree.forEach((skdt, skid) => {
+			if (!skdt || skdt.list !== list || !skdt.dependency) {
+				return;
+			}
+			const toPos = skdt.position;
+			const toPt = _cellCenterInContainer(container, toPos);
+			if (!toPt) {
+				return;
+			}
+
+			skdt.dependency.forEach((needLevel, needId) => {
+				const fromSk = skillDependencyTree[needId];
+				if (!fromSk || fromSk.list !== list) {
+					return;
+				}
+				const fromPt = _cellCenterInContainer(container, fromSk.position);
+				if (!fromPt) {
+					return;
+				}
+
+				const path = document.createElementNS(svgNS, 'path');
+				path.setAttribute('class', 'dep-line' + (_isDependencyMet(needId, needLevel) ? ' met' : ' unmet'));
+				path.setAttribute('d', _depLinePath(fromPt.x, fromPt.y, toPt.x, toPt.y));
+				path.setAttribute('marker-end', `url(#skill-dep-arrow-${list})`);
+				path.setAttribute('data-from', String(needId));
+				path.setAttribute('data-to', String(skid));
+				path.setAttribute('data-need', String(needLevel || 1));
+				svg.appendChild(path);
+				linkCount++;
+			});
+		});
+
+		if (linkCount > 0) {
+			const style = window.getComputedStyle(container);
+			if (style.position === 'static') {
+				container.style.position = 'relative';
+			}
+			container.insertBefore(svg, container.firstChild);
+		}
+	}
+
+	refreshDependencyLinkStates(root);
+}
+
+function refreshDependencyLinkStates(root) {
+	if (!root) {
+		return;
+	}
+	root.querySelectorAll('svg.skill-dep-links .dep-line').forEach(line => {
+		const needId = parseInt(line.getAttribute('data-from'), 10);
+		const needLevel = parseInt(line.getAttribute('data-need'), 10) || 1;
+		line.classList.toggle('met', _isDependencyMet(needId, needLevel));
+		line.classList.toggle('unmet', !_isDependencyMet(needId, needLevel));
+	});
+}
+
+function highlightDependencyLinks(skillId, root) {
+	if (!root) {
+		return;
+	}
+	const related = new Set([skillId]);
+	const walk = id => {
+		const skdt = skillDependencyTree[id];
+		if (!skdt?.dependency) {
+			return;
+		}
+		skdt.dependency.forEach((_lvl, needId) => {
+			if (!related.has(needId)) {
+				related.add(needId);
+				walk(needId);
+			}
+		});
+	};
+	walk(skillId);
+
+	root.querySelectorAll('svg.skill-dep-links .dep-line').forEach(line => {
+		const from = parseInt(line.getAttribute('data-from'), 10);
+		const to = parseInt(line.getAttribute('data-to'), 10);
+		const on = related.has(from) && related.has(to);
+		line.classList.toggle('highlight', on);
+	});
+}
+
+function clearDependencyLinkHighlight(root) {
+	if (!root) {
+		return;
+	}
+	root.querySelectorAll('svg.skill-dep-links .dep-line.highlight').forEach(line => {
+		line.classList.remove('highlight');
 	});
 }
 
@@ -573,8 +759,9 @@ SkillList.prepareSkillTree = function prepareSkillTree(items, list) {
 			element.className = `skill id${key} ${className}`;
 			element.setAttribute('data-index', key);
 			element.setAttribute('draggable', 'true');
+			const skillName = _escapeHTML(sk.SkillName);
 			element.innerHTML =
-				`<div class="name">${_escapeHTML(sk.SkillName).substr(0, 7)}...<br/></div>` +
+				`<div class="name" title="${skillName}">${skillName}</div>` +
 				'<div class="icon"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" width="24" height="24" /></div>' +
 				'<div class=selectable>' +
 				'<span class="level" style="display: none">' +
@@ -653,8 +840,9 @@ SkillList.addSkillBig = function addSkillBig(skill) {
 	element.className = `skill id${skill.SKID} ${className}`;
 	element.setAttribute('data-index', skill.SKID);
 	element.setAttribute('draggable', 'true');
+	const skillName = _escapeHTML(sk.SkillName);
 	element.innerHTML =
-		`<div class="name">${_escapeHTML(sk.SkillName).substr(0, 7)}...<br/></div>` +
+		`<div class="name" title="${skillName}">${skillName}</div>` +
 		'<div class="icon"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" width="24" height="24" /></div>' +
 		'<div class="levelupcontainer"></div>' +
 		'<div class=selectable>' +
@@ -888,9 +1076,16 @@ SkillList.updateSkill = function updateSkill(skill) {
 		if (levelupEl) {
 			levelupEl.style.display = skill.upgradable && _points ? '' : 'none';
 		}
+
+		const col = element.closest('.skillCol');
+		if (col) {
+			col.classList.toggle('learned', !!skill.level);
+			col.classList.toggle('upgradable', !!skill.upgradable && !!_points);
+		}
 	});
 
 	this.onUpdateSkill(skill.SKID, skill.level);
+	refreshDependencyLinkStates(root);
 };
 
 SkillList.useSkillID = function useSkillID(id, level) {
@@ -1061,6 +1256,7 @@ function resize(comp, width, height) {
 		root.querySelectorAll('.footer .btn').forEach(el => {
 			el.style.display = 'block';
 		});
+		requestAnimationFrame(() => renderDependencyLinks(root));
 	}
 }
 
@@ -1136,6 +1332,7 @@ function onNecessarySkills(target, root) {
 	}
 	const skillId = parseInt(main.getAttribute('data-index'), 10);
 	specifyRequirements(skillId, null, root);
+	highlightDependencyLinks(skillId, root);
 }
 
 function _resolveSkillID(el) {
