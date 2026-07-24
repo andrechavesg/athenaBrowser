@@ -103,7 +103,7 @@ JobNameTable[JobId.WINDHAWK] = 'windhawk';
 JobNameTable[JobId.IMPERIAL_GUARD] = 'imperial_guard';
 JobNameTable[JobId.BIOLO] = 'biolo';
 JobNameTable[JobId.ABYSS_CHASER] = 'abyss_chaser';
-JobNameTable[JobId.ELEMENTAL_MASTER] = 'elemetal_master';
+JobNameTable[JobId.ELEMENTAL_MASTER] = 'elemental_master';
 JobNameTable[JobId.INQUISITOR] = 'inquisitor';
 JobNameTable[JobId.TROUBADOUR] = 'troubadour';
 JobNameTable[JobId.TROUVERE] = 'trouvere';
@@ -209,6 +209,14 @@ JobNameTable[JobId.ELEMENTAL_MASTER_RIDING] = 'elemental_master_riding';
 JobNameTable[JobId.INQUISITOR_RIDING] = 'inquisitor_riding';
 JobNameTable[JobId.TROUBADOUR_RIDING] = 'troubadour_riding';
 JobNameTable[JobId.TROUVERE_RIDING] = 'trouvere_riding';
+
+JobNameTable[JobId.SKY_EMPEROR_RIDING] = 'sky_emperor_riding';
+JobNameTable[JobId.SOUL_ASCETIC_RIDING] = 'soul_ascetic_riding';
+JobNameTable[JobId.SHINKIRO_RIDING] = 'shinkiro_riding';
+JobNameTable[JobId.SHIRANUI_RIDING] = 'shiranui_riding';
+JobNameTable[JobId.NIGHT_WATCH_RIDING] = 'night_watch_riding';
+JobNameTable[JobId.HYPER_NOVICE_RIDING] = 'hyper_novice_riding';
+JobNameTable[JobId.SPIRIT_HANDLER_RIDING1] = 'spirit_handler_riding';
 
 JobNameTable[JobId.DRUID] = 'druid';
 JobNameTable[JobId.ALITEA] = 'alitea';

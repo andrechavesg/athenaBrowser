@@ -773,14 +773,16 @@ Navigation.navigateToSearchResult = function navigateToSearchResult(result) {
 
 	const currentMap = getCurrentMap();
 	const currentPos = getPlayerPosition();
+	const endX = result.x == null || result.x === '' ? 150 : result.x;
+	const endY = result.y == null || result.y === '' ? 150 : result.y;
 
 	this.navigateTo({
 		startMap: currentMap,
 		startX: currentPos.x,
 		startY: currentPos.y,
 		endMap: result.mapName,
-		endX: result.x,
-		endY: result.y,
+		endX: endX,
+		endY: endY,
 		displayName: result.name
 	});
 

@@ -171,12 +171,14 @@ NpcBox.onRemove = function onRemove() {
 
 	const nextBtn = root.querySelector('.next');
 	if (nextBtn) {
-		nextBtn.style.display = 'none';
+		nextBtn.classList.remove('is-visible');
+		nextBtn.style.display = '';
 	}
 
 	const closeBtn = root.querySelector('.close');
 	if (closeBtn) {
-		closeBtn.style.display = 'none';
+		closeBtn.classList.remove('is-visible');
+		closeBtn.style.display = '';
 	}
 
 	const content = root.querySelector('.content');
@@ -194,7 +196,23 @@ NpcBox.onRemove = function onRemove() {
 };
 
 function _isVisible(el) {
-	return !!el && getComputedStyle(el).display !== 'none';
+	return !!el && (el.classList.contains('is-visible') || getComputedStyle(el).display !== 'none');
+}
+
+function _showBtn(el) {
+	if (!el) {
+		return;
+	}
+	el.classList.add('is-visible');
+	el.style.display = '';
+}
+
+function _hideBtn(el) {
+	if (!el) {
+		return;
+	}
+	el.classList.remove('is-visible');
+	el.style.display = '';
 }
 
 /**
@@ -277,10 +295,8 @@ NpcBox.setText = function setText(text, gid) {
 NpcBox.addNext = function addNext(gid) {
 	NpcBox.ownerID = gid;
 	const root = NpcBox.getRoot();
-	const nextBtn = root.querySelector('.next');
-	if (nextBtn) {
-		nextBtn.style.display = 'block';
-	}
+	_hideBtn(root.querySelector('.close'));
+	_showBtn(root.querySelector('.next'));
 };
 
 /**
@@ -291,22 +307,23 @@ NpcBox.addNext = function addNext(gid) {
 NpcBox.addClose = function addClose(gid) {
 	NpcBox.ownerID = gid;
 	const root = NpcBox.getRoot();
-	const closeBtn = root.querySelector('.close');
-	if (closeBtn) {
-		closeBtn.style.display = 'block';
-	}
+	_hideBtn(root.querySelector('.next'));
+	_showBtn(root.querySelector('.close'));
 };
 
 /**
  * Press "next" button
  */
 NpcBox.next = function next() {
-	_needCleanUp = true;
 	const root = NpcBox.getRoot();
-	const nextBtn = root.querySelector('.next');
-	if (nextBtn) {
-		nextBtn.style.display = 'none';
+	const closeBtn = root.querySelector('.close');
+	// Finish step: Close is visible — Next must end the dialog (CZ.CLOSE_DIALOG).
+	if (_isVisible(closeBtn)) {
+		this.close();
+		return;
 	}
+	_needCleanUp = true;
+	_hideBtn(root.querySelector('.next'));
 	this.onNextPressed(NpcBox.ownerID);
 };
 
@@ -316,10 +333,8 @@ NpcBox.next = function next() {
 NpcBox.close = function close() {
 	_needCleanUp = true;
 	const root = NpcBox.getRoot();
-	const closeBtn = root.querySelector('.close');
-	if (closeBtn) {
-		closeBtn.style.display = 'none';
-	}
+	_hideBtn(root.querySelector('.close'));
+	_hideBtn(root.querySelector('.next'));
 	this.onClosePressed(NpcBox.ownerID);
 };
 

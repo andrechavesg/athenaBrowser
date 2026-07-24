@@ -35,11 +35,17 @@
 	bottom: 2px;
 	right: 8px;
 }
+/* native-eng chrome uses display:inline-flex !important — hide with !important
+   and reveal only via .is-visible so Close/Next stay mutually exclusive. */
 #NpcBox .btn {
 	width: 42px;
 	height: 20px;
 	bottom: 4px;
-	display: none;
+	display: none !important;
+}
+
+#NpcBox .btn.is-visible {
+	display: inline-flex !important;
 }
 
 .item-link {

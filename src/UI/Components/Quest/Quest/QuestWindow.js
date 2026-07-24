@@ -8,9 +8,11 @@
  * @author Vincent Thibault
  */
 
+import DB from 'DB/DBManager.js';
 import Preferences from 'Core/Preferences.js';
 import UIManager from 'UI/UIManager.js';
 import GUIComponent from 'UI/GUIComponent.js';
+import Navigation from 'UI/Components/Navigation/Navigation.js';
 import htmlText from './QuestWindow.html?raw';
 import cssText from './QuestWindow.css?raw';
 
@@ -37,10 +39,66 @@ QuestWindow.render = () => htmlText;
  */
 QuestWindow.mouseMode = GUIComponent.MouseMode.CROSS;
 
+function escapeAttr(value) {
+	return String(value)
+		.replace(/&/g, '&amp;')
+		.replace(/"/g, '&quot;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+}
+
+function stripRoColorCodes(text) {
+	return String(text || '')
+		.replace(/\^[0-9A-Fa-f]{6}/g, '')
+		.replace(/\^0\b/g, '')
+		.trim();
+}
+
+function mobNaviLinkHtml(mobName) {
+	const raw = String(mobName || '');
+	const clean = stripRoColorCodes(raw).replace(/^'+|'+$/g, '').trim();
+	if (!clean) {
+		return escapeAttr(raw);
+	}
+	return `<span class="navi-link" data-mob-navi="${escapeAttr(clean)}">${escapeAttr(clean)}</span>`;
+}
+
+function navigateToMobName(mobName) {
+	const query = String(mobName || '').trim();
+	if (!query || query.length < 2) {
+		return;
+	}
+	const results = DB.searchNavigation(query, 'MOB');
+	if (!results.length) {
+		return;
+	}
+	const q = query.toLowerCase();
+	const exact = results.find(r => String(r.name).toLowerCase() === q);
+	const result = exact || results[0];
+	Navigation.show();
+	Navigation.uid = `mob:${result.id}:${result.mapName}`;
+	Navigation.navigateToSearchResult(result);
+}
+
 /**
  * Initialize the component (event listener, etc.)
  */
-QuestWindow.init = function init() {};
+QuestWindow.init = function init() {
+	const root = this.getRoot();
+	if (!root) {
+		return;
+	}
+	root.addEventListener('click', event => {
+		const naviLink = event.target.closest('.navi-link');
+		if (!naviLink) {
+			return;
+		}
+		const mobName = naviLink.dataset.mobNavi;
+		if (mobName) {
+			navigateToMobName(mobName);
+		}
+	});
+};
 
 /**
  * Once append to the DOM, start to position the UI
@@ -99,16 +157,46 @@ QuestWindow.ClearQuestList = function ClearQuestList() {
 	}
 };
 
+function processMobNaviQuotes(text) {
+	if (!text) {
+		return '';
+	}
+	return String(text).replace(
+		/\^([0-9A-Fa-f]{6})'([^']+)'(?:\^000000|\^0)?/g,
+		(match, color, mobName) => {
+			const name = String(mobName || '').trim();
+			if (!name) {
+				return match;
+			}
+			return (
+				`<span class="navi-link" data-mob-navi="${escapeAttr(name)}" ` +
+				`style="color:#${color}">'${escapeAttr(name)}'</span>`
+			);
+		}
+	);
+}
+
 QuestWindow.addQuestToUI = function addQuestToUI(quest) {
 	const root = this.getRoot();
 	if (!root) {
 		return;
 	}
-	const title = quest.title.length > 25 ? `${quest.title.substr(0, 25)}...` : quest.title;
-	const summary = quest.summary.length > 25 ? `${quest.summary.substr(0, 25)}...` : quest.summary;
+	// Prefer hunt_list links; also link ^color'Mob'^000000 inside summary when present.
+	const titleRaw = String(quest.title || '');
+	const summaryRaw = String(quest.summary || '');
+	const titlePlain = stripRoColorCodes(titleRaw);
+	const summaryPlain = stripRoColorCodes(summaryRaw);
+	const title =
+		titlePlain.length > 25 ? `${escapeAttr(titlePlain.substr(0, 25))}...` : escapeAttr(titlePlain);
+	let summary =
+		summaryPlain.length > 40 ? `${escapeAttr(summaryPlain.substr(0, 40))}...` : escapeAttr(summaryPlain);
+	if (/\^[0-9A-Fa-f]{6}'[^']+'/.test(summaryRaw)) {
+		summary = processMobNaviQuotes(summaryRaw);
+	}
 	let list = '';
 	for (const huntID in quest.hunt_list) {
-		list += `<li>${quest.hunt_list[huntID].mobName} ( ${quest.hunt_list[huntID].huntCount} / ${quest.hunt_list[huntID].maxCount} )</li>`;
+		const hunt = quest.hunt_list[huntID];
+		list += `<li>${mobNaviLinkHtml(hunt.mobName)} ( ${hunt.huntCount} / ${hunt.maxCount} )</li>`;
 	}
 	const ul = root.querySelector('.quest-window-ul');
 	if (ul) {

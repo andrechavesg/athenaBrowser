@@ -212,3 +212,11 @@
 .navi-link:hover {
 	color: #ff0000;
 }
+
+.navi-link[data-mob-navi] {
+	color: #4d4dff;
+}
+
+.navi-link[data-mob-navi]:hover {
+	color: #7a7aff;
+}

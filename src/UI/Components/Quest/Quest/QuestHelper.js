@@ -40,19 +40,32 @@ const _preferences = Preferences.get(
 	1.0
 );
 
+function escapeAttr(value) {
+	return String(value)
+		.replace(/&/g, '&amp;')
+		.replace(/"/g, '&quot;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+}
+
+function stripRoColorCodes(text) {
+	return String(text || '')
+		.replace(/\^[0-9A-Fa-f]{6}/g, '')
+		.replace(/\^0\b/g, '')
+		.trim();
+}
+
 /**
  * Process text with color codes (^RRGGBB)
  * @param {string} text - The text to process
  * @returns {string} HTML with color spans
  */
 function processColorCodes(text) {
-	if (!text) {
+	// ragnarok-quest-msg-color-v1 — delegate to DB.formatMsgToHtml (^RRGGBB + ^0 reset)
+	if (text == null || text === '') {
 		return '';
 	}
-	text = String(text);
-	return text
-		.replace(/\^([0-9A-Fa-f]{6})/g, (match, color) => `<span style="color:#${color}">`)
-		.replace(/\^000000/g, '</span>');
+	return DB.formatMsgToHtml(String(text));
 }
 
 /**
@@ -86,17 +99,80 @@ function processNAVITags(text) {
 }
 
 /**
+ * OngoingQuestInfoList paints hunt targets as ^4d4dff'MobName'^000000 — not <NAVI>.
+ * Turn those quoted colored names into clickable mob navigation links.
+ */
+function processMobNaviQuotes(text) {
+	if (!text) {
+		return '';
+	}
+	return String(text).replace(
+		/\^([0-9A-Fa-f]{6})'([^']+)'(?:\^000000|\^0)?/g,
+		(match, color, mobName) => {
+			const name = String(mobName || '').trim();
+			if (!name) {
+				return match;
+			}
+			return (
+				`<span class="navi-link" data-mob-navi="${escapeAttr(name)}" ` +
+				`style="color:#${color}">'${escapeAttr(name)}'</span>`
+			);
+		}
+	);
+}
+
+/**
+ * Wrap a hunt-list mob name as a navi link (spawn via DB.searchNavigation).
+ */
+function mobNaviLinkHtml(mobName) {
+	const raw = String(mobName || '');
+	const clean = stripRoColorCodes(raw).replace(/^'+|'+$/g, '').trim();
+	if (!clean) {
+		return processColorCodes(raw);
+	}
+	const label = processColorCodes(raw) || escapeAttr(clean);
+	return `<span class="navi-link" data-mob-navi="${escapeAttr(clean)}">${label}</span>`;
+}
+
+function navigateToMobName(mobName) {
+	const query = String(mobName || '').trim();
+	if (!query || query.length < 2) {
+		return;
+	}
+	const results = DB.searchNavigation(query, 'MOB');
+	if (!results.length) {
+		return;
+	}
+	const q = query.toLowerCase();
+	const exact = results.find(r => String(r.name).toLowerCase() === q);
+	const result = exact || results[0];
+	Navigation.show();
+	Navigation.uid = `mob:${result.id}:${result.mapName}`;
+	Navigation.navigateToSearchResult(result);
+}
+
+/**
  * Process all text formatting (color codes and item tags)
  * @param {string} text - The text to process
  * @returns {string} Fully processed HTML
  */
 function processText(text) {
-	if (!text) {
+	// ragnarok-quest-helper-rewards-v1
+	// ragnarok-quest-mob-navi-v1
+	if (text == null || text === '') {
 		return '';
+	}
+	if (Array.isArray(text)) {
+		text = text.filter(Boolean).join('\n');
+	} else {
+		text = String(text);
 	}
 	text = processItemTags(text);
 	text = processNAVITags(text);
+	text = processMobNaviQuotes(text);
 	text = processColorCodes(text);
+	// Preserve multi-line quest descriptions in the detail panel.
+	text = text.replace(/\r\n/g, '\n').replace(/\n/g, '<br>');
 	return text;
 }
 
@@ -132,6 +208,11 @@ QuestHelper.init = function init() {
 
 		const naviLink = event.target.closest('.navi-link');
 		if (naviLink) {
+			const mobName = naviLink.dataset.mobNavi;
+			if (mobName) {
+				navigateToMobName(mobName);
+				return;
+			}
 			const naviInfo = naviLink.dataset.naviInfo;
 			const displayName = naviLink.dataset.naviName;
 			if (!naviInfo) {
@@ -191,24 +272,23 @@ QuestHelper.setQuestInfo = function setQuestInfo(quest) {
 
 	let list = '';
 	for (const huntID in quest.hunt_list) {
-		list += `<li>${processText(quest.hunt_list[huntID].mobName)} ( ${quest.hunt_list[huntID].huntCount} / ${quest.hunt_list[huntID].maxCount} )</li>`;
+		const hunt = quest.hunt_list[huntID];
+		list += `<li>${mobNaviLinkHtml(hunt.mobName)} ( ${hunt.huntCount} / ${hunt.maxCount} )</li>`;
 	}
 	const monsterEl = root.querySelector('.quest-info-monster-panel-text .quest-ui-text-span');
 	if (monsterEl) {
 		monsterEl.innerHTML = `<ul class="quest-ui-monster-list">${list}<ul>`;
 	}
 
-	if (quest.reward_exp_base > 0) {
-		const baseEl = root.querySelector('.quest-info-reward-li-base');
-		if (baseEl) {
-			baseEl.textContent = quest.reward_exp_base;
-		}
+	const baseEl = root.querySelector('.quest-info-reward-li-base');
+	if (baseEl) {
+		const base = Number(quest.reward_exp_base) || 0;
+		baseEl.textContent = base > 0 ? String(base) : '-';
 	}
-	if (quest.reward_exp_job > 0) {
-		const jobEl = root.querySelector('.quest-info-reward-li-job');
-		if (jobEl) {
-			jobEl.textContent = quest.reward_exp_job;
-		}
+	const jobEl = root.querySelector('.quest-info-reward-li-job');
+	if (jobEl) {
+		const job = Number(quest.reward_exp_job) || 0;
+		jobEl.textContent = job > 0 ? String(job) : '-';
 	}
 
 	for (let i = 0; i < quest.reward_item_list.length; i++) {

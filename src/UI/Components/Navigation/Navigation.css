@@ -65,10 +65,13 @@
 	right: 16px;
 	width: 13px;
 	height: 13px;
+	z-index: 2;
 	background-repeat: no-repeat;
+	background-size: 13px 13px;
 	background-color: transparent;
 	border: none;
 	cursor: pointer;
+	display: inline-block;
 }
 
 .Navigation .titlebar .close {
@@ -77,10 +80,13 @@
 	right: 2px;
 	width: 13px;
 	height: 13px;
+	z-index: 2;
 	background-repeat: no-repeat;
+	background-size: 13px 13px;
 	background-color: transparent;
 	border: none;
 	cursor: pointer;
+	display: inline-block;
 }
 
 .Navigation.collapsed {

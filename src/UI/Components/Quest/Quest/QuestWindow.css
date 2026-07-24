@@ -37,3 +37,13 @@
 	list-style: none;
 	padding-left: 20px;
 }
+
+#QuestWindow .navi-link {
+	color: #7eb8ff;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+#QuestWindow .navi-link:hover {
+	color: #b0d4ff;
+}

@@ -3493,31 +3493,60 @@ class DB {
 
 		// Search MOBs if type is ALL or MOB
 		if (type === 'ALL' || type === 'MOB') {
-			// NaviMobTable structure: [["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info], ...]
+			// Hercules navi_mob layout (see AutoBattle):
+			// [0]map [1]spawn [2]type [3]packed [4]classId [5]name [6]sprite [7]level ...
+			// Legacy docs used [3]=class [4]=name — detect by whether [4] looks like a class id.
+			const seen = Object.create(null);
 			for (let i = 0; i < NaviMobTable.length; i++) {
 				const mob = NaviMobTable[i];
-				const mapName = mob[0];
-				const mobId = mob[3]; // Using mob_class as the ID
-				const mobName = mob[4] || '';
-
-				// Skip if no name
-				if (!mobName) {
+				if (!Array.isArray(mob) || mob.length < 5) {
 					continue;
 				}
 
-				// Check if the MOB name contains the query
-				if (mobName.toLowerCase().indexOf(query) !== -1) {
-					// Note: mob_info might contain position data, but structure is unclear
-					// For now, we're not including x/y coordinates for mobs
-					results.push({
-						type: 'MOB',
-						id: mobId,
-						name: mobName,
-						mapName: mapName,
-						x: null,
-						y: null
-					});
+				let mapName = mob[0];
+				let classId;
+				let rawName;
+				const maybeClass = Number(mob[4]);
+				if (Number.isFinite(maybeClass) && maybeClass >= 1000 && typeof mob[5] === 'string') {
+					classId = maybeClass;
+					rawName = mob[5];
+				} else {
+					classId = Number(mob[3]);
+					rawName = typeof mob[4] === 'string' ? mob[4] : '';
 				}
+
+				if (!Number.isFinite(classId) || classId < 1000) {
+					continue;
+				}
+
+				const engName = this.getMonsterName(classId);
+				const displayName =
+					engName && engName !== 'Unknown' ? engName : typeof rawName === 'string' ? rawName : '';
+				if (!displayName) {
+					continue;
+				}
+
+				const haystack = (displayName + ' ' + (rawName || '')).toLowerCase();
+				if (haystack.indexOf(query) === -1) {
+					continue;
+				}
+
+				mapName = String(mapName || '').replace(/\.gat$/i, '');
+				const dedupeKey = classId + '|' + mapName;
+				if (seen[dedupeKey]) {
+					continue;
+				}
+				seen[dedupeKey] = true;
+
+				// Spawn coords are not reliable in this LUB; map center lets pathfinding run.
+				results.push({
+					type: 'MOB',
+					id: classId,
+					name: displayName,
+					mapName: mapName,
+					x: 150,
+					y: 150
+				});
 			}
 		}
 

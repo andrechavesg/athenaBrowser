@@ -127,12 +127,12 @@
 }
 
 #WorldMap .worldmap .section.navitarget:not(.currentmap) {
-	background-color: rgba(255, 64, 64, 0.55);
-	box-shadow: 0 0 0 2px rgba(255, 80, 80, 0.85);
+	background-color: rgba(0, 220, 255, 0.45);
+	box-shadow: 0 0 0 2px rgba(0, 200, 240, 0.9);
 }
 
 #WorldMap .worldmap .section.navitarget.currentmap {
-	box-shadow: 0 0 0 2px rgba(255, 80, 80, 0.85);
+	box-shadow: 0 0 0 2px rgba(0, 200, 240, 0.9);
 }
 
 #WorldMap .worldmap .section .mapname {

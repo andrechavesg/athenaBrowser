@@ -989,7 +989,14 @@ function onEntityTalkColor(pkt) {
 function onEntityIdentity(pkt) {
 	const entity = EntityManager.get(pkt.AID);
 	if (entity) {
-		if (entity.display.name) {
+		const isNpc =
+			entity.objecttype === Entity.TYPE_NPC || entity.objecttype === Entity.TYPE_NPC2;
+		// NPCs: always prefer non-empty server CName over jobname.lub / prior display
+		// (Korean Eden teleporter nameplates came from jobname when CName was ignored).
+		if (isNpc && pkt.CName) {
+			entity.display.name = pkt.CName;
+			entity.display.fakename = '';
+		} else if (entity.display.name) {
 			entity.display.fakename = pkt.CName;
 		} else {
 			entity.display.name = pkt.CName;
