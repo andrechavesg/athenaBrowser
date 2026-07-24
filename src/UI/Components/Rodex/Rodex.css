@@ -285,21 +285,34 @@
 	height: 25px;
 	position: relative;
 }
-#Rodex .body .footer .delete-all {
-	position: absolute;
-	width: 80px;
-	height: 20px;
-	top: 5px;
-	left: 10px;
-	background-size: 100% 100%;
-}
+#Rodex .body .footer .delete-all,
 #Rodex .body .footer .retrieve-all {
 	position: absolute;
 	width: 80px;
 	height: 20px;
 	top: 5px;
-	left: 100px;
 	background-size: 100% 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #00008b;
+	font-size: 11px;
+	line-height: 1;
+	padding: 0;
+	cursor: pointer;
+}
+#Rodex .body .footer .delete-all {
+	left: 10px;
+}
+#Rodex .body .footer .retrieve-all {
+	left: 100px;
+}
+#Rodex .body .searchbar .search-title-text,
+#Rodex .body .searchbar .search-sender-text {
+	white-space: nowrap;
+	width: auto;
+	height: auto;
+	font-size: 11px;
 }
 #Rodex .body .footer .previous-page {
 	position: absolute;

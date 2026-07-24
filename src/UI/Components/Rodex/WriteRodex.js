@@ -32,6 +32,43 @@ WriteRodex.receiver = null;
 WriteRodex.tax = 0;
 
 /**
+ * iRO msgstringtable blanks / truncates Rodex write labels (3545, 3575, …).
+ */
+const MSG_FALLBACKS = {
+	2611: 'Please enter a recipient name.',
+	2643: 'Please check the fees.',
+	3545: 'Validate',
+	3575: 'TITLE'
+};
+
+function rodexMessage(id) {
+	const text = DB.getMessage(id, '');
+	if (text && text !== '#') {
+		return text;
+	}
+	return MSG_FALLBACKS[id] || '';
+}
+
+function applyWriteRodexTextFallbacks(root) {
+	if (!root) {
+		return;
+	}
+	root.querySelectorAll('[data-text]').forEach(node => {
+		const id = parseInt(node.dataset.text, 10);
+		if (!Number.isFinite(id)) {
+			return;
+		}
+		const current = (node.textContent || '').trim();
+		if (!current || current === '#') {
+			const fallback = rodexMessage(id);
+			if (fallback) {
+				node.textContent = fallback;
+			}
+		}
+	});
+}
+
+/**
  * @var {Preferences} structure
  */
 const _preferences = Preferences.get(
@@ -72,6 +109,7 @@ WriteRodex.onAppend = function onAppend() {
 	this._host.style.left = `${Math.min(Math.max(0, rodexLeft) + 330, Renderer.width - this._host.offsetWidth)}px`;
 
 	this.draggable(root.querySelector('.titlebar'));
+	applyWriteRodexTextFallbacks(root);
 };
 
 WriteRodex.initData = function initData(pkt) {
@@ -92,7 +130,8 @@ WriteRodex.initData = function initData(pkt) {
 	const baloon = root.querySelector('.baloon');
 	baloon.style.display = 'none';
 
-	root.querySelector('.title-text').value = DB.getMessage(3575);
+	root.querySelector('.title-text').value = rodexMessage(3575);
+	applyWriteRodexTextFallbacks(root);
 	root.querySelector('.content-text').value = '';
 	root.querySelector('.character-zeny').textContent = `${prettifyZeny(Session.zeny)} Zeny`;
 
@@ -159,7 +198,7 @@ function onClickSend(e) {
 		WriteRodex.receiver == null ||
 		(typeof WriteRodex.receiver === 'string' && WriteRodex.receiver.trim().length === 0)
 	) {
-		ChatBox.addText(DB.getMessage(2611), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(rodexMessage(2611), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
 		return;
 	}
 	const receiver = WriteRodex.receiver;
@@ -169,7 +208,7 @@ function onClickSend(e) {
 	zeny = zeny < 0 ? 0 : zeny;
 
 	if (WriteRodex.tax + zeny > Session.zeny) {
-		ChatBox.addText(DB.getMessage(2643), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
+		ChatBox.addText(rodexMessage(2643), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
 		return;
 	}
 

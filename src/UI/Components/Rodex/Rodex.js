@@ -25,6 +25,61 @@ import cssText from './Rodex.css?raw';
 const Rodex = new GUIComponent('Rodex', cssText);
 
 /**
+ * iRO / older msgstringtable leave Rodex rows as empty "#" and stop ~3022,
+ * so tabs/buttons (3545+) resolve blank. English fallbacks match Rodex.html IDs.
+ */
+const MSG_FALLBACKS = {
+	1026: 'Write Mail',
+	2589: 'Failed to load mail list.',
+	2611: 'Please enter a recipient name.',
+	2612: 'Please claim all attachments before deleting your mail.',
+	2643: 'Please check the fees.',
+	2701: 'Sender',
+	2702: 'Title',
+	2849: 'Refresh',
+	2907: 'The message has been deleted',
+	3192: 'Title',
+	3193: 'Sender',
+	3545: 'Validate',
+	3546: 'Account',
+	3547: 'Character',
+	3548: 'Return',
+	3549: 'All',
+	3575: 'TITLE',
+	3589: 'Delete All',
+	3590: 'Delete all mails without attachments?',
+	3592: 'Retrieve All',
+	3594: 'Retrieve all attachments?'
+};
+
+function rodexMessage(id) {
+	const text = DB.getMessage(id, '');
+	if (text && text !== '#') {
+		return text;
+	}
+	return MSG_FALLBACKS[id] || '';
+}
+
+function applyRodexTextFallbacks(root) {
+	if (!root) {
+		return;
+	}
+	root.querySelectorAll('[data-text]').forEach(node => {
+		const id = parseInt(node.dataset.text, 10);
+		if (!Number.isFinite(id)) {
+			return;
+		}
+		const current = (node.textContent || '').trim();
+		if (!current || current === '#') {
+			const fallback = rodexMessage(id);
+			if (fallback) {
+				node.textContent = fallback;
+			}
+		}
+	});
+}
+
+/**
  * Store Rodex items
  */
 Rodex.list = [];
@@ -115,6 +170,7 @@ Rodex.onAppend = function OnAppend() {
 	root.querySelector('#tab_0').classList.add('active');
 	Rodex.searchType = 1;
 	Rodex.page = 0;
+	applyRodexTextFallbacks(root);
 };
 
 /**
@@ -205,6 +261,7 @@ Rodex.createRodexList = function createRodexList(tabID = 0, search = false, term
 	content.querySelectorAll(selector).forEach(node => {
 		GUIComponent.processDataAttrs(node);
 	});
+	applyRodexTextFallbacks(content);
 };
 
 Rodex.getMailsByTabID = function getMailsByTabID(tabID) {
@@ -241,7 +298,7 @@ Rodex.deleteAll = function deleteAll() {
 		if (mail.type === 0) {
 			Rodex.requestDeleteRodex(mail.openType, mail.MailID);
 		} else {
-			ChatBox.addText(DB.getMessage(2612), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
+			ChatBox.addText(rodexMessage(2612), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
 		}
 	}
 };
@@ -250,7 +307,7 @@ Rodex.updateDeletedMailContent = function updateDeletedMailContent(openType, Mai
 	const root = _root();
 	const mailEl = root.querySelector(`#mail_${MailID}`);
 	if (mailEl) {
-		mailEl.textContent = DB.getMessage(2907);
+		mailEl.textContent = rodexMessage(2907);
 		mailEl.classList.add('deleted');
 	}
 	const senderEl = root.querySelector(`#sender_${MailID}`);
@@ -285,7 +342,7 @@ Rodex.toggle = function toggle() {
 Rodex.getListFailed = function getListFailed() {
 	Rodex.list = [];
 	Rodex.createRodexList(Rodex.openType);
-	ChatBox.addText(DB.getMessage(2589), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
+	ChatBox.addText(rodexMessage(2589), ChatBox.TYPE.INFO_MAIL, ChatBox.FILTER.PUBLIC_LOG);
 };
 
 Rodex.onKeyDown = function onKeyDown(event) {
@@ -322,14 +379,14 @@ function onClickWriteMail(e) {
 
 function onClickDeleteAll(e) {
 	e.stopImmediatePropagation();
-	UIManager.showPromptBox(DB.getMessage(3590), 'ok', 'cancel', () => {
+	UIManager.showPromptBox(rodexMessage(3590), 'ok', 'cancel', () => {
 		Rodex.deleteAll();
 	});
 }
 
 function onClickRetrieveAll(e) {
 	e.stopImmediatePropagation();
-	UIManager.showPromptBox(DB.getMessage(3594), 'ok', 'cancel', () => {
+	UIManager.showPromptBox(rodexMessage(3594), 'ok', 'cancel', () => {
 		Rodex.getAll();
 	});
 }
