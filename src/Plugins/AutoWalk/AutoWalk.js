@@ -209,6 +209,7 @@ function _onCanvasMouseUp(e) {
 // ── DOM panel ─────────────────────────────────────────────────────────────────
 
 const CSS = `
+/* Hide Auto Walk HUD until MapEngine marks an in-game session */
 #aw-host {
     position: fixed;
     bottom: 8px;
@@ -217,6 +218,10 @@ const CSS = `
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
     pointer-events: none;
+    display: none;
+}
+#aw-host.aw-ingame {
+    display: block;
 }
 #aw-host * { box-sizing: border-box; }
 
@@ -471,12 +476,17 @@ const CSS = `
 `;
 
 function _buildDOM() {
-    if (!document.getElementById('aw-style')) {
-        const style = document.createElement('style');
+    let style = document.getElementById('aw-style');
+    if (!style) {
+        style = document.createElement('style');
         style.id = 'aw-style';
-        style.textContent = CSS;
         document.head.appendChild(style);
     }
+    // Always refresh — soft reload can leave a stale #aw-style from an older build.
+    style.textContent = CSS;
+
+    const existing = document.getElementById('aw-host');
+    if (existing) existing.remove();
 
     const host = document.createElement('div');
     host.id = 'aw-host';
@@ -806,6 +816,28 @@ function _wireEvents(root) {
 // ── public API ────────────────────────────────────────────────────────────────
 
 /**
+ * Show/hide the Auto Walk HUD. Vanilla DOM is not managed by UIManager, so
+ * we must hide explicitly on login / char select / map-loading screens.
+ */
+export function setHudVisible(visible) {
+    const host = (_root && document.body.contains(_root))
+        ? _root
+        : document.getElementById('aw-host');
+    if (!host) return;
+    _root = host;
+    if (visible) {
+        host.classList.add('aw-ingame');
+        return;
+    }
+    host.classList.remove('aw-ingame');
+    const panel = host.querySelector('#aw-panel');
+    if (panel) panel.classList.remove('aw-panel-open');
+    if (_active) {
+        _toggleActive(host);
+    }
+}
+
+/**
  * Call from MapEngine when the player changes maps.
  * Clears all recorded waypoints (they are map-specific) and resets state.
  */
@@ -828,12 +860,14 @@ export function onMapChange() {
  * multiple times (idempotent after first init).
  */
 export default function Init() {
-    if (_root) {
+    if (_root && document.body.contains(_root)) {
         // Already initialised — just reset waypoints for the new map
         onMapChange();
+        setHudVisible(true);
         return;
     }
     _root = _buildDOM();
     _wireEvents(_root);
+    setHudVisible(true);
     console.log('[AutoWalk] initialised');
 }

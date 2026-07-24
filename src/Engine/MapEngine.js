@@ -118,8 +118,8 @@ import ClanEngine from './MapEngine/Clan.js';
 import CashShopEngine from './MapEngine/CashShop.js';
 import BankEngine from './MapEngine/Bank.js';
 import AchievementEngine from './MapEngine/Achievement.js';
-import AutoBattle from 'Plugins/AutoBattle/AutoBattle.js';
-import AutoWalk, { onMapChange as AutoWalkMapChange } from 'Plugins/AutoWalk/AutoWalk.js';
+import AutoBattle, { setHudVisible as AutoBattleSetHudVisible } from 'Plugins/AutoBattle/AutoBattle.js';
+import AutoWalk, { onMapChange as AutoWalkMapChange, setHudVisible as AutoWalkSetHudVisible } from 'Plugins/AutoWalk/AutoWalk.js';
 import KeyToMove from 'Plugins/KeyToMove/KeyToMove.js';
 
 /**
@@ -623,6 +623,11 @@ function onConnectionRefused(pkt) {
  * @param {object} pkt - PACKET.ZC.NPCACK_MAPMOVE
  */
 function onMapChange(pkt) {
+	// Auto Walk / Auto Battle are vanilla DOM (not UIManager) — hide while the
+	// map loading screen is up; Init() re-shows them once the map is ready.
+	try { AutoWalkSetHudVisible(false); } catch (_) {}
+	try { AutoBattleSetHudVisible(false); } catch (_) {}
+
 	MapRenderer.onLoad = () => {
 		Session.Entity.set({
 			PosDir: [pkt.xPos, pkt.yPos, 0],
@@ -809,6 +814,9 @@ function onExitSuccess() {
 		ShortCut.saveToServer();
 	}
 
+	try { AutoWalkSetHudVisible(false); } catch (_) {}
+	try { AutoBattleSetHudVisible(false); } catch (_) {}
+
 	WhisperBox.clearAll();
 	UIManager.removeComponents();
 	Network.close();
@@ -855,6 +863,9 @@ function onRestartAnswer(pkt) {
 		// Have to wait 10sec
 		ChatBox.addText(DB.getMessage(502), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
 	} else {
+		try { AutoWalkSetHudVisible(false); } catch (_) {}
+		try { AutoBattleSetHudVisible(false); } catch (_) {}
+
 		WhisperBox.clearAll();
 		GuildEngine.guild_id = 0;
 		BasicInfo.getUI().remove();

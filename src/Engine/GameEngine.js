@@ -170,6 +170,14 @@ class GameEngine {
 
 		UIManager.removeComponents();
 		Network.close();
+		// Auto Walk / Auto Battle inject vanilla DOM outside UIManager — remove
+		// orphans so login / server-list never shows in-game HUD toggles.
+		try {
+			const aw = document.getElementById('aw-host');
+			if (aw) aw.remove();
+			const ab = document.getElementById('ab-host');
+			if (ab) ab.remove();
+		} catch (_) { /* ignore */ }
 		// Setup background
 		Background.init();
 		Background.resize(Renderer.width, Renderer.height);

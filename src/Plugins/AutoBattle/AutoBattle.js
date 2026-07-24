@@ -324,6 +324,7 @@ function _getMobListForMap() {
 
 // ── vanilla DOM panel ─────────────────────────────────────────────────────────
 const CSS = `
+/* Hide Auto Battle HUD until MapEngine marks an in-game session */
 #ab-host {
     position: fixed;
     bottom: 8px;
@@ -332,6 +333,10 @@ const CSS = `
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
     pointer-events: none;
+    display: none;
+}
+#ab-host.ab-ingame {
+    display: block;
 }
 #ab-host * { box-sizing: border-box; }
 
@@ -444,12 +449,17 @@ const CSS = `
 `;
 
 function _buildDOM() {
-    if (!document.getElementById('ab-style')) {
-        const style = document.createElement('style');
+    let style = document.getElementById('ab-style');
+    if (!style) {
+        style = document.createElement('style');
         style.id = 'ab-style';
-        style.textContent = CSS;
         document.head.appendChild(style);
     }
+    // Always refresh — soft reload can leave a stale #ab-style from an older build.
+    style.textContent = CSS;
+
+    const existing = document.getElementById('ab-host');
+    if (existing) existing.remove();
 
     const host = document.createElement('div');
     host.id = 'ab-host';
@@ -660,6 +670,28 @@ function _esc(str) {
 // ── plugin entry point ────────────────────────────────────────────────────────
 
 /**
+ * Show/hide the Auto Battle HUD. Vanilla DOM is not managed by UIManager, so
+ * we must hide explicitly on login / char select / map-loading screens.
+ */
+export function setHudVisible(visible) {
+    const host = (_root && document.body.contains(_root))
+        ? _root
+        : document.getElementById('ab-host');
+    if (!host) return;
+    _root = host;
+    if (visible) {
+        host.classList.add('ab-ingame');
+        return;
+    }
+    host.classList.remove('ab-ingame');
+    const panel = host.querySelector('#ab-panel');
+    if (panel) panel.classList.remove('ab-panel-open');
+    if (_active) {
+        _toggleActive(host);
+    }
+}
+
+/**
  * Refresh the mob list from the outside (e.g. called by MapEngine on map load).
  * Safe to call even before Init().
  */
@@ -668,13 +700,15 @@ export function refreshMobList() {
 }
 
 export default function Init() {
-    if (_root) {
+    if (_root && document.body.contains(_root)) {
         // Already initialised — just refresh the mob list for the new map
         _refreshList(_root);
+        setHudVisible(true);
         return;
     }
     _root = _buildDOM();
     _wireEvents(_root);
     // Auto-populate mob list on first load
     _refreshList(_root);
+    setHudVisible(true);
 }
