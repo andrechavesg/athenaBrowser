@@ -330,20 +330,26 @@
 	pointer-events: none;
 	z-index: 3;
 }
-#charcreate_v4 .hair-styles {
+/* HTML uses hair_styles (underscore); hyphen selector never matched → no scroll. */
+#charcreate_v4 .hair_styles {
 	position: absolute;
 	top: 26px;
 	left: 0;
-	width: 160px;
+	width: 168px;
 	height: 230px;
-	overflow: visible;
+	overflow-x: hidden;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(120, 170, 220, 0.85) rgba(12, 36, 72, 0.35);
+	box-sizing: border-box;
 }
 #charcreate_v4 .hair-style {
-	position: absolute;
+	/* relative so row content contributes to scrollHeight (absolute clipped scroll) */
+	position: relative;
 	top: 0;
 	left: 0;
-	width: 160px;
-	height: 230px;
+	width: 148px;
+	height: auto;
 	display: none;
 }
 
@@ -370,10 +376,18 @@
 	top: 288px;
 	left: 10px;
 	width: 160px;
+	height: 30px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	white-space: nowrap;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(120, 170, 220, 0.85) rgba(12, 36, 72, 0.35);
+	box-sizing: border-box;
 }
 #charcreate_v4 .haircolor_row {
-	position: relative;
-	display: flex;
+	display: inline-flex;
+	vertical-align: top;
+	white-space: nowrap;
 }
 #charcreate_v4 .colorCol {
 	position: relative;

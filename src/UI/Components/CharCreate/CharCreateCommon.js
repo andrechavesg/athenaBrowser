@@ -849,6 +849,10 @@ export function createCharCreate(config) {
 	/**
 	 * Render head sprites into each visible hairstyle cell.
 	 * Skin packs often omit img_hairstyle*.bmp; GRF tiles can also be stubs.
+	 *
+	 * Head-only: full renderEntity() also draws the novice/doram body, which
+	 * clips into a green "foot" overlay in every 36×37 cell (same look as the
+	 * JOB icon on the race card BMP). Suppress body + shadow for the tile.
 	 */
 	function paintHairStylePreviews(root) {
 		const panel = root.querySelector(`#${_race}_${_gender}`);
@@ -859,10 +863,21 @@ export function createCharCreate(config) {
 		const sex = _gender === 'male' ? GENDER.MALE : GENDER.FEMALE;
 		const job = _race === 'human' ? RACE.HUMAN : RACE.DORAM;
 		const headpalette = _model.entity.headpalette;
+		const entity = _hairPreview.entity;
+		entity.hideShadow = true;
 
 		panel.querySelectorAll('.hstyle_button').forEach(btn => {
 			const head = parseInt(btn.getAttribute('for'), 10);
 			if (!Number.isFinite(head) || head < 1) {
+				return;
+			}
+
+			// Prefer official img_hairstyle*.bmp when loadHairStyleIcons succeeded.
+			if (btn.dataset.hairIcon === '1') {
+				const existing = btn.querySelector('canvas.hair-preview');
+				if (existing) {
+					existing.remove();
+				}
 				return;
 			}
 
@@ -878,17 +893,29 @@ export function createCharCreate(config) {
 			}
 
 			const ctx = canvas.getContext('2d');
-			_hairPreview.entity.set({
+			entity.set({
 				sex,
 				job,
 				head,
 				headpalette,
 				action: 0,
-				direction: 4
+				direction: 4,
+				hideShadow: true
 			});
-			SpriteRenderer.bind2DContext(ctx, 18, 30);
+
+			// Null body for this draw so only the head layer paints into the tile.
+			const body = entity.files.body;
+			const savedSpr = body.spr;
+			const savedAct = body.act;
+			body.spr = null;
+			body.act = null;
+
+			SpriteRenderer.bind2DContext(ctx, 18, 28);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			_hairPreview.entity.renderEntity();
+			entity.renderEntity();
+
+			body.spr = savedSpr;
+			body.act = savedAct;
 		});
 	}
 
@@ -911,13 +938,21 @@ export function createCharCreate(config) {
 				DB.INTERFACE_PATH + src,
 				dataURI => {
 					if (typeof dataURI === 'string' && dataURI.length > 32) {
+						btn.dataset.hairIcon = '1';
 						btn.style.backgroundImage = `url(${dataURI})`;
 						btn.style.backgroundSize = '36px 37px';
 						btn.style.backgroundRepeat = 'no-repeat';
 						btn.style.backgroundPosition = 'center';
+						const canvas = btn.querySelector('canvas.hair-preview');
+						if (canvas) {
+							canvas.remove();
+						}
+					} else {
+						btn.dataset.hairIcon = '0';
 					}
 				},
 				() => {
+					btn.dataset.hairIcon = '0';
 					/* sprite preview covers missing tiles */
 				}
 			);
